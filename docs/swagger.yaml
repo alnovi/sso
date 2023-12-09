@@ -1,0 +1,18 @@
+basePath: /
+host: 127.0.0.1:8081
+info:
+  contact: {}
+  description: Открытый протокол, обеспечивающий безопасную авторизацию простым и
+    стандартным способом.
+  license:
+    name: MIT License
+    url: https://mit-license.org/
+  title: Single Sign-On Server
+  version: 0.0.0
+paths: {}
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
