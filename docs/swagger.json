@@ -12,7 +12,127 @@
     },
     "host": "127.0.0.1:8081",
     "basePath": "/",
-    "paths": {},
+    "paths": {
+        "/oauth/signin": {
+            "get": {
+                "description": "Форма авторизации для клиентского приложения или для доступа в профиль пользователя",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Форма авторизации и востановления доступа",
+                "operationId": "AuthForm",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID клиента",
+                        "name": "client_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ссылка клиента для обратного вызова",
+                        "name": "redirect_uri",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML страница с формой авторизации"
+                    },
+                    "302": {
+                        "description": "Передача кода по ссылке обратного вызова"
+                    },
+                    "400": {
+                        "description": "Ошибка запроса"
+                    }
+                }
+            },
+            "post": {
+                "description": "Авторизация пользователя в клиентском приложении или для доступа в профиль пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Авторизация пользователя",
+                "operationId": "SignIn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID клиента",
+                        "name": "client_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ссылка клиента для обратного вызова",
+                        "name": "redirect_uri",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Данные для авторизации пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SignIn"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ссылка обратного вызова с кодом"
+                    },
+                    "302": {
+                        "description": "Передача кода по ссылке обратного вызова"
+                    },
+                    "400": {
+                        "description": "Ошибка запроса"
+                    },
+                    "401": {
+                        "description": "Аунтефикация не пройдена"
+                    },
+                    "403": {
+                        "description": "Нет доступа к клиенту"
+                    },
+                    "422": {
+                        "description": "Ошибка ввода данных"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "request.SignIn": {
+            "description": "Авторизации пользователя по логину и паролю",
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "description": "Логин или email пользователя",
+                    "type": "string",
+                    "minLength": 3
+                },
+                "password": {
+                    "description": "Пароль пользователя",
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 6
+                },
+                "remember": {
+                    "description": "Запомнить меня",
+                    "type": "boolean"
+                }
+            }
+        }
+    },
     "securityDefinitions": {
         "ApiKeyAuth": {
             "type": "apiKey",

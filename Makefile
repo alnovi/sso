@@ -28,7 +28,7 @@ migration:
 ## swag: генерация документации
 .PHONY: swag
 swag:
-	swag init -g main.go -p snakecase -d ./cmd/server
+	swag init -g main.go -p snakecase -d ./cmd/server,./internal/transport/http/request,./internal/transport/http/handler
 
 ## lint: статический анализ
 .PHONY: lint

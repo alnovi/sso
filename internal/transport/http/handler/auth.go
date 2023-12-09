@@ -22,7 +22,18 @@ func NewAuthHandler(auth usecase.Auth, client usecase.Client) *AuthHandler {
 	return &AuthHandler{auth: auth, client: client}
 }
 
-// TODO: добавить документацию
+// AuthForm godoc
+// @ID          AuthForm
+// @Summary     Форма авторизации и востановления доступа
+// @Description Форма авторизации для клиентского приложения или для доступа в профиль пользователя
+// @Tags        Авторизация
+// @Produce     html
+// @Param       client_id query string false "ID клиента"
+// @Param       redirect_uri query string false "Ссылка клиента для обратного вызова"
+// @Success 200 "HTML страница с формой авторизации"
+// @Success 302 "Передача кода по ссылке обратного вызова"
+// @Failure 400 "Ошибка запроса"
+// @Router      /oauth/signin [get]
 func (h *AuthHandler) AuthForm(c echo.Context) error {
 	var err error
 
@@ -69,7 +80,22 @@ func (h *AuthHandler) AuthForm(c echo.Context) error {
 	})
 }
 
-// TODO: добавить документацию
+// SignIn godoc
+// @ID          SignIn
+// @Summary     Авторизация пользователя
+// @Description Авторизация пользователя в клиентском приложении или для доступа в профиль пользователя
+// @Tags        Авторизация
+// @Produce     json
+// @Param       client_id query string false "ID клиента"
+// @Param       redirect_uri query string false "Ссылка клиента для обратного вызова"
+// @Param       request body request.SignIn true "Данные для авторизации пользователя"
+// @Success 200 "Ссылка обратного вызова с кодом"
+// @Success 302 "Передача кода по ссылке обратного вызова"
+// @Failure 400 "Ошибка запроса"
+// @Failure 401 "Аунтефикация не пройдена"
+// @Failure 403 "Нет доступа к клиенту"
+// @Failure 422 "Ошибка ввода данных"
+// @Router      /oauth/signin [post]
 func (h *AuthHandler) SignIn(c echo.Context) error {
 	var err error
 	var req request.SignIn

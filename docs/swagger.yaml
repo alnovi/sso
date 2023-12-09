@@ -1,4 +1,24 @@
 basePath: /
+definitions:
+  request.SignIn:
+    description: Авторизации пользователя по логину и паролю
+    properties:
+      login:
+        description: Логин или email пользователя
+        minLength: 3
+        type: string
+      password:
+        description: Пароль пользователя
+        maxLength: 24
+        minLength: 6
+        type: string
+      remember:
+        description: Запомнить меня
+        type: boolean
+    required:
+    - login
+    - password
+    type: object
 host: 127.0.0.1:8081
 info:
   contact: {}
@@ -9,7 +29,70 @@ info:
     url: https://mit-license.org/
   title: Single Sign-On Server
   version: 0.0.0
-paths: {}
+paths:
+  /oauth/signin:
+    get:
+      description: Форма авторизации для клиентского приложения или для доступа в
+        профиль пользователя
+      operationId: AuthForm
+      parameters:
+      - description: ID клиента
+        in: query
+        name: client_id
+        type: string
+      - description: Ссылка клиента для обратного вызова
+        in: query
+        name: redirect_uri
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML страница с формой авторизации
+        "302":
+          description: Передача кода по ссылке обратного вызова
+        "400":
+          description: Ошибка запроса
+      summary: Форма авторизации и востановления доступа
+      tags:
+      - Авторизация
+    post:
+      description: Авторизация пользователя в клиентском приложении или для доступа
+        в профиль пользователя
+      operationId: SignIn
+      parameters:
+      - description: ID клиента
+        in: query
+        name: client_id
+        type: string
+      - description: Ссылка клиента для обратного вызова
+        in: query
+        name: redirect_uri
+        type: string
+      - description: Данные для авторизации пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ссылка обратного вызова с кодом
+        "302":
+          description: Передача кода по ссылке обратного вызова
+        "400":
+          description: Ошибка запроса
+        "401":
+          description: Аунтефикация не пройдена
+        "403":
+          description: Нет доступа к клиенту
+        "422":
+          description: Ошибка ввода данных
+      summary: Авторизация пользователя
+      tags:
+      - Авторизация
 securityDefinitions:
   ApiKeyAuth:
     in: header
