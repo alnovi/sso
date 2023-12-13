@@ -9,6 +9,7 @@ import (
 	"github.com/alnovi/sso/internal/exception"
 	"github.com/alnovi/sso/internal/pkg/template"
 	"github.com/alnovi/sso/internal/pkg/translate"
+	"github.com/alnovi/sso/internal/transport/http/response"
 	"github.com/alnovi/sso/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -40,34 +41,31 @@ func httpErrorHandler(err error, c echo.Context) {
 		return
 	}
 
-	code := http.StatusInternalServerError
-	message := ""
-	data := echo.Map{}
-
 	var echoHttpError *echo.HTTPError
 	if errors.As(err, &echoHttpError) {
-		code = echoHttpError.Code
-		message = echoHttpError.Message.(string)
+		_ = c.JSON(echoHttpError.Code, response.Error{
+			Message: echoHttpError.Message.(string),
+		})
+		return
 	}
 
 	var validateError *validator.ValidateError
 	if errors.As(err, &validateError) {
-		code = http.StatusUnprocessableEntity
-		data = echo.Map{
-			"validate": validateError.Fields,
-		}
+		_ = c.JSON(http.StatusUnprocessableEntity, response.ErrorValidate{
+			Message:  translate.HttpStatusTextRU(http.StatusUnprocessableEntity),
+			Validate: validateError.Fields,
+		})
+		return
 	}
 
 	if errors.Is(err, exception.AccessDenied) {
-		code = http.StatusForbidden
+		_ = c.JSON(http.StatusForbidden, response.Error{
+			Message: translate.HttpStatusTextRU(http.StatusForbidden),
+		})
+		return
 	}
 
-	if message == "" || message == http.StatusText(code) {
-		message = translate.HttpStatusTextRU(code)
-	}
-
-	data["code"] = code
-	data["message"] = message
-
-	_ = c.JSON(code, data)
+	_ = c.JSON(http.StatusInternalServerError, response.Error{
+		Message: translate.HttpStatusTextRU(http.StatusInternalServerError),
+	})
 }

@@ -28,7 +28,3 @@ func (s *Service) AuthByCredentials(ctx context.Context, login, password string)
 
 	return user, nil
 }
-
-func (s *Service) CanUseClient(ctx context.Context, user entity.User, client entity.Client) error {
-	return s.repo.CanUseClient(ctx, client, user)
-}

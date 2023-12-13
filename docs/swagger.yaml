@@ -19,6 +19,57 @@ definitions:
     - login
     - password
     type: object
+  response.AccessToken:
+    description: Токен доступа
+    properties:
+      access_token:
+        description: Токен доступа
+        type: string
+      expires_in:
+        description: Время действия токена
+        type: integer
+      info:
+        allOf:
+        - $ref: '#/definitions/response.UserInfo'
+        description: Информация о пользователе
+      refresh_token:
+        description: Токен обновления
+        type: string
+      token_type:
+        description: Тип авторизации
+        type: string
+    type: object
+  response.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  response.ErrorValidate:
+    properties:
+      message:
+        type: string
+      validate:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  response.Location:
+    properties:
+      location:
+        type: string
+    type: object
+  response.UserInfo:
+    properties:
+      email:
+        description: Email пользователя
+        type: string
+      name:
+        description: Полное имя пользовтаеля
+        type: string
+      uid:
+        description: ID пользовтаеля
+        type: string
+    type: object
 host: 127.0.0.1:8081
 info:
   contact: {}
@@ -53,6 +104,8 @@ paths:
           description: Передача кода по ссылке обратного вызова
         "400":
           description: Ошибка запроса
+        "500":
+          description: Внутренняя ошибка сервера
       summary: Форма авторизации и востановления доступа
       tags:
       - Авторизация
@@ -80,17 +133,84 @@ paths:
       responses:
         "200":
           description: Ссылка обратного вызова с кодом
+          schema:
+            $ref: '#/definitions/response.Location'
         "302":
           description: Передача кода по ссылке обратного вызова
         "400":
           description: Ошибка запроса
+          schema:
+            $ref: '#/definitions/response.Error'
         "401":
           description: Аунтефикация не пройдена
+          schema:
+            $ref: '#/definitions/response.Error'
         "403":
           description: Нет доступа к клиенту
+          schema:
+            $ref: '#/definitions/response.Error'
         "422":
           description: Ошибка ввода данных
+          schema:
+            $ref: '#/definitions/response.ErrorValidate'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.Error'
       summary: Авторизация пользователя
+      tags:
+      - Авторизация
+  /oauth/token:
+    post:
+      description: Получение токена доступа по коду или обновление токена доступа
+      operationId: GenerateToken
+      parameters:
+      - description: ID клиента
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Секрет клиента
+        in: query
+        name: client_secret
+        required: true
+        type: string
+      - description: Единоразовый авторизационный код, если grant_type=authorization_code
+        in: query
+        name: code
+        type: string
+      - description: Единоразовый refresh токен, если grant_type=refresh_token
+        in: query
+        name: refresh_token
+        type: string
+      - description: Тип разрешения
+        enum:
+        - authorization_code
+        - refresh_token
+        in: query
+        name: grant_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Токен доступа
+          schema:
+            $ref: '#/definitions/response.AccessToken'
+        "401":
+          description: Аунтефикация не пройдена
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: Нет доступа к клиенту
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Получение токена доступа
       tags:
       - Авторизация
 securityDefinitions:

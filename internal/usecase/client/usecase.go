@@ -29,3 +29,12 @@ func (uc *UseCase) ClientForAuth(ctx context.Context, dto dto.ClientForAuth) (*e
 
 	return client, nil
 }
+
+func (uc *UseCase) ClientForToken(ctx context.Context, dto dto.ClientForToken) (*entity.Client, error) {
+	client, err := uc.client.GetClient(ctx, dto.ClientId, nil, &dto.ClientSecret)
+	if err != nil {
+		return nil, exception.Wrap(exception.ClientNotFound, err)
+	}
+
+	return client, nil
+}

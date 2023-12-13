@@ -24,5 +24,6 @@ type Repository interface {
 
 	CreateToken(ctx context.Context, token *entity.Token) error
 	UpdateToken(ctx context.Context, token *entity.Token) error
-	GetTokenByHash(ctx context.Context, hash string) (*entity.Token, error)
+	DeleteToken(ctx context.Context, tokenId string) error
+	GetTokenByClassAndHash(ctx context.Context, class, hash string) (*entity.Token, error)
 }

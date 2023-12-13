@@ -15,4 +15,9 @@ type Auth interface {
 
 type Client interface {
 	ClientForAuth(ctx context.Context, dto dto.ClientForAuth) (*entity.Client, error)
+	ClientForToken(ctx context.Context, dto dto.ClientForToken) (*entity.Client, error)
+}
+
+type Token interface {
+	AccessAndRefreshToken(ctx context.Context, dto dto.AccessToken) (*entity.TokenWithUser, *entity.Token, error)
 }

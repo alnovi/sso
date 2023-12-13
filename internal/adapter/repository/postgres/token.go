@@ -55,7 +55,7 @@ func (r *Repository) CreateToken(ctx context.Context, token *entity.Token) error
 			token.UpdatedAt,
 		).
 		RunWith(r.connect(ctx)).
-		Exec()
+		ExecContext(ctx)
 
 	return err
 }
@@ -81,19 +81,19 @@ func (r *Repository) UpdateToken(ctx context.Context, token *entity.Token) error
 		Set("meta", token.UpdatedAt).
 		Where(squirrel.Eq{"id": token.Id}).
 		RunWith(r.connect(ctx)).
-		Exec()
+		ExecContext(ctx)
 
 	return err
 }
 
-func (r *Repository) GetTokenByHash(ctx context.Context, hash string) (*entity.Token, error) {
+func (r *Repository) GetTokenByClassAndHash(ctx context.Context, class, hash string) (*entity.Token, error) {
 	result := &entity.Token{}
 
 	err := r.qb.Select(tokenFields...).
 		From(tableTokens).
-		Where(squirrel.Eq{"hash": hash}).
+		Where(squirrel.Eq{"class": class, "hash": hash}).
 		RunWith(r.connect(ctx)).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(
 			&result.Id,
 			&result.Class,
@@ -112,4 +112,10 @@ func (r *Repository) GetTokenByHash(ctx context.Context, hash string) (*entity.T
 	}
 
 	return result, err
+}
+
+func (r *Repository) DeleteToken(ctx context.Context, tokenId string) error {
+	_, err := r.qb.Delete(tableTokens).Where(squirrel.Eq{"id": tokenId}).RunWith(r.connect(ctx)).ExecContext(ctx)
+
+	return err
 }

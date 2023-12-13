@@ -25,7 +25,7 @@ func (uc *UseCase) AuthById(ctx context.Context, dto dto.AuthById) (*entity.User
 		return nil, nil, err
 	}
 
-	err = uc.auth.CanUseClient(ctx, *user, dto.Client)
+	err = uc.user.CanUseClient(ctx, *user, dto.Client)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -44,7 +44,7 @@ func (uc *UseCase) AuthByCredentials(ctx context.Context, dto dto.AuthByCredenti
 		return nil, nil, err
 	}
 
-	err = uc.auth.CanUseClient(ctx, *user, dto.Client)
+	err = uc.user.CanUseClient(ctx, *user, dto.Client)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -63,7 +63,11 @@ func (uc *UseCase) buildCallback(ctx context.Context, user entity.User, client e
 		return nil, err
 	}
 
-	token, err := uc.token.NewCode(ctx, user.Id, client.Id, ip, agent)
+	meta := &entity.TokenMeta{
+		IP:    ip,
+		Agent: agent,
+	}
+	token, err := uc.token.NewCode(ctx, user, client, meta)
 	if err != nil {
 		return nil, err
 	}

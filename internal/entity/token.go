@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+const (
+	TokenClassCode    = "code"
+	TokenClassAccess  = "access"
+	TokenClassRefresh = "refresh"
+)
+
 type Token struct {
 	Id         string
 	Class      string
@@ -23,6 +29,11 @@ type Token struct {
 type TokenMeta struct {
 	IP    string `json:"ip,omitempty"`
 	Agent string `json:"agent,omitempty"`
+}
+
+type TokenWithUser struct {
+	Token
+	User User
 }
 
 func (tm *TokenMeta) Value() (driver.Value, error) {

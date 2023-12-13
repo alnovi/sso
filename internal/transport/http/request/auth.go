@@ -1,6 +1,6 @@
 package request
 
-// SignIn model info
+// SignIn request info
 // @Description Авторизации пользователя по логину и паролю
 type SignIn struct {
 	// Логин или email пользователя

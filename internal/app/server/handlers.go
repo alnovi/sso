@@ -16,6 +16,6 @@ func newHandlers(_ *App, uc *UseCases) (*Handlers, error) {
 	return &Handlers{
 		doc:   echoSwagger.WrapHandler,
 		auth:  handler.NewAuthHandler(uc.auth, uc.client),
-		token: handler.NewTokenHandler(),
+		token: handler.NewTokenHandler(uc.client, uc.token),
 	}, nil
 }

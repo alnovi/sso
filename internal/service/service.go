@@ -8,7 +8,6 @@ import (
 
 type Auth interface {
 	AuthByCredentials(ctx context.Context, login, password string) (*entity.User, error)
-	CanUseClient(ctx context.Context, user entity.User, client entity.Client) error
 }
 
 type Client interface {
@@ -17,9 +16,14 @@ type Client interface {
 }
 
 type Token interface {
-	NewCode(ctx context.Context, userId, clientId, ip, agent string) (*entity.Token, error)
+	NewCode(ctx context.Context, user entity.User, client entity.Client, meta *entity.TokenMeta) (*entity.Token, error)
+	NewAccess(ctx context.Context, user entity.User, client entity.Client) (*entity.Token, error)
+	NewRefresh(ctx context.Context, user entity.User, client entity.Client, meta *entity.TokenMeta) (*entity.Token, error)
+	FindToken(ctx context.Context, client entity.Client, class, hash string) (*entity.Token, error)
+	RemoveToken(ctx context.Context, tokenId string) error
 }
 
 type User interface {
+	CanUseClient(ctx context.Context, user entity.User, client entity.Client) error
 	GetUserById(ctx context.Context, userId string) (*entity.User, error)
 }

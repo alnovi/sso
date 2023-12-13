@@ -47,6 +47,9 @@
                     },
                     "400": {
                         "description": "Ошибка запроса"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
                     }
                 }
             },
@@ -85,22 +88,121 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Ссылка обратного вызова с кодом"
+                        "description": "Ссылка обратного вызова с кодом",
+                        "schema": {
+                            "$ref": "#/definitions/response.Location"
+                        }
                     },
                     "302": {
                         "description": "Передача кода по ссылке обратного вызова"
                     },
                     "400": {
-                        "description": "Ошибка запроса"
+                        "description": "Ошибка запроса",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
                     },
                     "401": {
-                        "description": "Аунтефикация не пройдена"
+                        "description": "Аунтефикация не пройдена",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
                     },
                     "403": {
-                        "description": "Нет доступа к клиенту"
+                        "description": "Нет доступа к клиенту",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
                     },
                     "422": {
-                        "description": "Ошибка ввода данных"
+                        "description": "Ошибка ввода данных",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorValidate"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/token": {
+            "post": {
+                "description": "Получение токена доступа по коду или обновление токена доступа",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Получение токена доступа",
+                "operationId": "GenerateToken",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID клиента",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Секрет клиента",
+                        "name": "client_secret",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Единоразовый авторизационный код, если grant_type=authorization_code",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Единоразовый refresh токен, если grant_type=refresh_token",
+                        "name": "refresh_token",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "authorization_code",
+                            "refresh_token"
+                        ],
+                        "type": "string",
+                        "description": "Тип разрешения",
+                        "name": "grant_type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Токен доступа",
+                        "schema": {
+                            "$ref": "#/definitions/response.AccessToken"
+                        }
+                    },
+                    "401": {
+                        "description": "Аунтефикация не пройдена",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа к клиенту",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
                     }
                 }
             }
@@ -129,6 +231,83 @@
                 "remember": {
                     "description": "Запомнить меня",
                     "type": "boolean"
+                }
+            }
+        },
+        "response.AccessToken": {
+            "description": "Токен доступа",
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "description": "Токен доступа",
+                    "type": "string"
+                },
+                "expires_in": {
+                    "description": "Время действия токена",
+                    "type": "integer"
+                },
+                "info": {
+                    "description": "Информация о пользователе",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.UserInfo"
+                        }
+                    ]
+                },
+                "refresh_token": {
+                    "description": "Токен обновления",
+                    "type": "string"
+                },
+                "token_type": {
+                    "description": "Тип авторизации",
+                    "type": "string"
+                }
+            }
+        },
+        "response.Error": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorValidate": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "validate": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.Location": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UserInfo": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email пользователя",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Полное имя пользовтаеля",
+                    "type": "string"
+                },
+                "uid": {
+                    "description": "ID пользовтаеля",
+                    "type": "string"
                 }
             }
         }
