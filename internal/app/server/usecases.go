@@ -17,6 +17,6 @@ func newUseCases(_ *App, s *Services) (*UseCases, error) {
 	return &UseCases{
 		auth:   auth.New(s.auth, s.token, s.user),
 		client: client.New(s.client),
-		token:  token.New(s.token),
+		token:  token.New(s.token, s.user),
 	}, nil
 }
