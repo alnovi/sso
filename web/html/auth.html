@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SSO | Авторизация</title>
+</head>
+<body>
+<div class="sso-inst" style="display: none">
+    <div class="wallpaper">
+        <img src="{{ .AppImage }}" draggable="false" alt="">
+    </div>
+    <div class="container">
+        <div class="header-section"></div>
+        <div class="body-section">
+            <div class="panel">
+                <span class="panel-tab">alnovi</span>
+                <div class="panel-client">
+                    <div class="client-icon">
+                        <img src="https://img-android.lisisoft.com/imgmic/2/7/2172-i-com.Android.darkchrome.jpg" alt="">
+                    </div>
+                    <div class="client-name">{{ .AppName }}</div>
+                </div>
+                <div class="panel-container">
+                    <div id="app"></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-section"></div>
+    </div>
+</div>
+<script type="module" src="./../src/apps/auth/main.js"></script>
+</body>
+</html>

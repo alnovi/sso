@@ -102,32 +102,8 @@ const docTemplate = `{
                     "302": {
                         "description": "Передача кода по ссылке обратного вызова"
                     },
-                    "400": {
+                    "default": {
                         "description": "Ошибка запроса",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Аунтефикация не пройдена",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Нет доступа к клиенту",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка ввода данных",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorValidate"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/response.Error"
                         }
@@ -232,7 +208,7 @@ const docTemplate = `{
                     "description": "Пароль пользователя",
                     "type": "string",
                     "maxLength": 24,
-                    "minLength": 6
+                    "minLength": 5
                 },
                 "remember": {
                     "description": "Запомнить меня",
@@ -271,14 +247,6 @@ const docTemplate = `{
             }
         },
         "response.Error": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.ErrorValidate": {
             "type": "object",
             "properties": {
                 "message": {

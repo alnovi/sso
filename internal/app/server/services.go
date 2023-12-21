@@ -15,7 +15,7 @@ type Services struct {
 	user   service.User
 }
 
-func newServices(_ *App, a *Adapters) (*Services, error) {
+func newServices(app *App, a *Adapters) (*Services, error) {
 	return &Services{
 		auth:   auth.New(a.repo),
 		client: client.New(a.repo),

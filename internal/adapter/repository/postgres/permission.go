@@ -28,7 +28,7 @@ func (r *Repository) CanUseClient(ctx context.Context, client entity.Client, use
 	}
 
 	if !canUse {
-		return exception.AccessDenied
+		return exception.ClientAccessDenied
 	}
 
 	return nil

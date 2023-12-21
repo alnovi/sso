@@ -10,6 +10,7 @@ import (
 	"github.com/alnovi/sso/internal/transport/http/request"
 	"github.com/alnovi/sso/internal/transport/http/response"
 	"github.com/alnovi/sso/internal/usecase"
+	"github.com/alnovi/sso/pkg/utils"
 	"github.com/alnovi/sso/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -23,8 +24,8 @@ func NewAuthHandler(auth usecase.Auth, client usecase.Client) *AuthHandler {
 	return &AuthHandler{auth: auth, client: client}
 }
 
-// AuthForm godoc
-// @ID          AuthForm
+// Auth godoc
+// @ID          AuthPage
 // @Summary     Форма авторизации и востановления доступа
 // @Description Форма авторизации для клиентского приложения или для доступа в профиль пользователя
 // @Tags        Авторизация
@@ -32,11 +33,10 @@ func NewAuthHandler(auth usecase.Auth, client usecase.Client) *AuthHandler {
 // @Param       client_id query string false "ID клиента"
 // @Param       redirect_uri query string false "Ссылка клиента для обратного вызова"
 // @Success 200 "HTML страница с формой авторизации"
-// @Success 302 "Передача кода по ссылке обратного вызова"
-// @Failure 400 "Ошибка запроса"
-// @Failure 500 "Внутренняя ошибка сервера"
+// @Success 301 "Передача кода по ссылке обратного вызова"
+// @Failure default {object} response.Error "Ошибка запроса"
 // @Router      /oauth/signin [get]
-func (h *AuthHandler) AuthForm(c echo.Context) error {
+func (h *AuthHandler) Auth(c echo.Context) error {
 	var err error
 
 	ctx := c.Request().Context()
@@ -54,7 +54,8 @@ func (h *AuthHandler) AuthForm(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 
-	if cookie, err := c.Cookie("uid"); err == nil {
+	cookie, err := c.Cookie("uid")
+	if err == nil {
 		dtoAuth := dto.AuthById{
 			Client: *client,
 			UserId: cookie.Value,
@@ -63,19 +64,14 @@ func (h *AuthHandler) AuthForm(c echo.Context) error {
 		}
 
 		_, callback, err := h.auth.AuthById(ctx, dtoAuth)
-		if errors.Is(err, exception.AccessDenied) {
-			return err
-		}
-		if err != nil {
-			cookie.Expires = time.Now()
-			c.SetCookie(cookie)
-		}
 		if err == nil {
-			return c.Redirect(http.StatusFound, callback.String())
+			//cookie.Expires = time.Now()
+			//c.SetCookie(cookie)
+			return c.Redirect(http.StatusMovedPermanently, callback.String())
 		}
 	}
 
-	return c.Render(http.StatusOK, "signin.html", echo.Map{
+	return c.Render(http.StatusOK, "auth.html", echo.Map{
 		"AppName":  client.Name,
 		"AppLogo":  client.Logo,
 		"AppImage": client.Image,
@@ -92,12 +88,8 @@ func (h *AuthHandler) AuthForm(c echo.Context) error {
 // @Param       redirect_uri query string false "Ссылка клиента для обратного вызова"
 // @Param       request body request.SignIn true "Данные для авторизации пользователя"
 // @Success 200 {object} response.Location "Ссылка обратного вызова с кодом"
-// @Success 302 "Передача кода по ссылке обратного вызова"
-// @Failure 400 {object} response.Error "Ошибка запроса"
-// @Failure 401 {object} response.Error "Аунтефикация не пройдена"
-// @Failure 403 {object} response.Error "Нет доступа к клиенту"
-// @Failure 422 {object} response.ErrorValidate "Ошибка ввода данных"
-// @Failure 500 {object} response.Error "Внутренняя ошибка сервера"
+// @Success 301 "Передача кода по ссылке обратного вызова"
+// @Failure default {object} response.Error "Ошибка запроса"
 // @Router      /oauth/signin [post]
 func (h *AuthHandler) SignIn(c echo.Context) error {
 	var err error
@@ -157,9 +149,9 @@ func (h *AuthHandler) SignIn(c echo.Context) error {
 		c.SetCookie(&cookie)
 	}
 
-	if c.Request().Header.Get("Content-Type") == "application/json" {
+	if utils.RequestIsJson(c.Request()) {
 		return c.JSON(http.StatusOK, response.Location{Location: callback.String()})
 	}
 
-	return c.Redirect(http.StatusFound, callback.String())
+	return c.Redirect(http.StatusMovedPermanently, callback.String())
 }

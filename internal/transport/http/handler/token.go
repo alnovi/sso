@@ -32,9 +32,7 @@ func NewTokenHandler(client usecase.Client, token usecase.Token) *TokenHandler {
 // @Param       refresh_token query string false "Единоразовый refresh токен, если grant_type=refresh_token"
 // @Param       grant_type query string true "Тип разрешения" Enums(authorization_code, refresh_token)
 // @Success 200 {object} response.AccessToken "Токен доступа"
-// @Failure 401 {object} response.Error "Аунтефикация не пройдена"
-// @Failure 403 {object} response.Error "Нет доступа к клиенту"
-// @Failure 500 {object} response.Error "Внутренняя ошибка сервера"
+// @Failure default {object} response.Error "Ошибка запроса"
 // @Router      /oauth/token [post]
 func (h *TokenHandler) GenerateToken(c echo.Context) error {
 	var err error
@@ -68,7 +66,7 @@ func (h *TokenHandler) GenerateToken(c echo.Context) error {
 	}
 
 	access, refresh, err := h.token.AccessAndRefreshToken(ctx, dtoToken)
-	if errors.Is(err, exception.AccessDenied) {
+	if errors.Is(err, exception.ClientAccessDenied) {
 		return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
 	}
 	if exception.Is(err) {

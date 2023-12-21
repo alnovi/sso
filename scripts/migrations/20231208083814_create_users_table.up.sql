@@ -11,4 +11,4 @@ create table users
 );
 
 insert into users (name, login, email, password)
-values ('Admin', 'admin', 'admin@example.com', 'qwerty');
+values ('Admin', 'admin', 'admin@example.com', 'admin');

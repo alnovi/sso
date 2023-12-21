@@ -1,5 +1,5 @@
 package config
 
 type App struct {
-	Host string `env:"HOST"`
+	Host string `env:"HOST,required"`
 }

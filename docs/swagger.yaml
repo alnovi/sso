@@ -10,7 +10,7 @@ definitions:
       password:
         description: Пароль пользователя
         maxLength: 24
-        minLength: 6
+        minLength: 5
         type: string
       remember:
         description: Запомнить меня
@@ -40,11 +40,6 @@ definitions:
         type: string
     type: object
   response.Error:
-    properties:
-      message:
-        type: string
-    type: object
-  response.ErrorValidate:
     properties:
       message:
         type: string
@@ -137,24 +132,8 @@ paths:
             $ref: '#/definitions/response.Location'
         "302":
           description: Передача кода по ссылке обратного вызова
-        "400":
+        default:
           description: Ошибка запроса
-          schema:
-            $ref: '#/definitions/response.Error'
-        "401":
-          description: Аунтефикация не пройдена
-          schema:
-            $ref: '#/definitions/response.Error'
-        "403":
-          description: Нет доступа к клиенту
-          schema:
-            $ref: '#/definitions/response.Error'
-        "422":
-          description: Ошибка ввода данных
-          schema:
-            $ref: '#/definitions/response.ErrorValidate'
-        "500":
-          description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/response.Error'
       summary: Авторизация пользователя

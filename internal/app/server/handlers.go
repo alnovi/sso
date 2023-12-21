@@ -7,15 +7,19 @@ import (
 )
 
 type Handlers struct {
-	doc   echo.HandlerFunc
-	auth  *handler.AuthHandler
-	token *handler.TokenHandler
+	auth    *handler.AuthHandler
+	home    *handler.HomeHandler
+	profile *handler.ProfileHandler
+	token   *handler.TokenHandler
+	doc     echo.HandlerFunc
 }
 
 func newHandlers(_ *App, uc *UseCases) (*Handlers, error) {
 	return &Handlers{
-		doc:   echoSwagger.WrapHandler,
-		auth:  handler.NewAuthHandler(uc.auth, uc.client),
-		token: handler.NewTokenHandler(uc.client, uc.token),
+		auth:    handler.NewAuthHandler(uc.auth, uc.client),
+		home:    handler.NewHomeHandler(),
+		profile: handler.NewProfileHandler(),
+		token:   handler.NewTokenHandler(uc.client, uc.token),
+		doc:     echoSwagger.WrapHandler,
 	}, nil
 }

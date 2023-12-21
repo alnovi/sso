@@ -86,6 +86,12 @@ func (r *Repository) UpdateToken(ctx context.Context, token *entity.Token) error
 	return err
 }
 
+func (r *Repository) DeleteToken(ctx context.Context, tokenId string) error {
+	_, err := r.qb.Delete(tableTokens).Where(squirrel.Eq{"id": tokenId}).RunWith(r.connect(ctx)).ExecContext(ctx)
+
+	return err
+}
+
 func (r *Repository) GetTokenByClassAndHash(ctx context.Context, class, hash string) (*entity.Token, error) {
 	result := &entity.Token{}
 
@@ -114,8 +120,30 @@ func (r *Repository) GetTokenByClassAndHash(ctx context.Context, class, hash str
 	return result, err
 }
 
-func (r *Repository) DeleteToken(ctx context.Context, tokenId string) error {
-	_, err := r.qb.Delete(tableTokens).Where(squirrel.Eq{"id": tokenId}).RunWith(r.connect(ctx)).ExecContext(ctx)
+func (r *Repository) GetTokenByClientAndHash(ctx context.Context, clientId, hash string) (*entity.Token, error) {
+	result := &entity.Token{}
 
-	return err
+	err := r.qb.Select(tokenFields...).
+		From(tableTokens).
+		Where(squirrel.Eq{"client_id": clientId, "hash": hash}).
+		RunWith(r.connect(ctx)).
+		QueryRowContext(ctx).
+		Scan(
+			&result.Id,
+			&result.Class,
+			&result.Hash,
+			&result.UserId,
+			&result.ClientId,
+			&result.Meta,
+			&result.NotBefore,
+			&result.Expiration,
+			&result.CreatedAt,
+			&result.UpdatedAt,
+		)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, exception.TokenNotFound
+	}
+
+	return result, err
 }

@@ -1,10 +1,11 @@
 package exception
 
 var (
-	AccessDenied      = New("access denied")
 	PasswordIncorrect = New("password incorrect")
+	NotAuthorization  = New("not authorization")
 
-	ClientNotFound = New("client not found")
+	ClientNotFound     = New("client not found")
+	ClientAccessDenied = New("access denied")
 
 	TokenNotFound = New("token not found")
 

@@ -14,5 +14,5 @@ create table clients
 );
 
 insert into clients(class, name, logo, image, secret, callback, can_use)
-values ('manager', 'SSO Manager', '', 'https://alnovi.ru/drive/webman/3rdparty/SynologyDrive-Drive/images/_Asset/2x/_Drive/wallpaper_drive.jpg', substr(md5(random()::text), 0, 25), 'https://ya.ry', false),
-       ('profile', 'SSO Profile', '', 'https://alnovi.ru/drive/webman/3rdparty/SynologyDrive-Drive/images/_Asset/2x/_Drive/wallpaper_drive.jpg', substr(md5(random()::text), 0, 25), 'https://ya.ry', true);
+values ('manager', 'SSO Manager', '', 'https://alnovi.ru/drive/webman/3rdparty/SynologyDrive-Drive/images/_Asset/2x/_Drive/wallpaper_drive.jpg', substr(md5(random()::text), 0, 25), 'https://ya.ru', false),
+       ('profile', 'SSO Profile', '', 'https://alnovi.ru/drive/webman/3rdparty/SynologyDrive-Drive/images/_Asset/2x/_Drive/wallpaper_drive.jpg', substr(md5(random()::text), 0, 25), 'https://ya.ru', true);
