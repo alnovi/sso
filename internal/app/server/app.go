@@ -16,6 +16,7 @@ type App struct {
 	cfg      *config.Config
 	log      *slog.Logger
 	adapters *Adapters
+	clients  *Clients
 	http     *echo.Echo
 }
 
@@ -35,6 +36,11 @@ func NewApp(cfg *config.Config, log *slog.Logger) (*App, error) {
 	}
 
 	services, err := newServices(app, app.adapters)
+	if err != nil {
+		return nil, err
+	}
+
+	app.clients, err = newClients(services)
 	if err != nil {
 		return nil, err
 	}

@@ -21,7 +21,7 @@ func (s *Service) validateJWT(clientId, secret, hash string) (*entity.Token, err
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("can't parse jwt token")
 		}
-		return secret, nil
+		return []byte(secret), nil
 	})
 	if err != nil {
 		return nil, err

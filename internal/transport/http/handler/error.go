@@ -1,8 +1,68 @@
-package translate
+package handler
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
 
-func HttpStatusTextRU(code int) string {
+	"github.com/alnovi/sso/internal/exception"
+	"github.com/alnovi/sso/internal/transport/http/response"
+	"github.com/alnovi/sso/pkg/utils"
+	"github.com/alnovi/sso/pkg/validator"
+	"github.com/labstack/echo/v4"
+)
+
+type Error struct {
+}
+
+func NewError() *Error {
+	return &Error{}
+}
+
+func (h *Error) ErrorHandle(err error, c echo.Context) {
+	if c.Response().Committed {
+		return
+	}
+
+	data := response.Error{
+		Code:    http.StatusInternalServerError,
+		Message: h.httpStatusText(http.StatusInternalServerError),
+	}
+
+	var echoHttpError *echo.HTTPError
+	if errors.As(err, &echoHttpError) {
+		data.Code = echoHttpError.Code
+		data.Message = echoHttpError.Message.(string)
+
+		if data.Message == http.StatusText(data.Code) {
+			data.Message = h.httpStatusText(data.Code)
+		}
+	}
+
+	var validateError *validator.ValidateError
+	if errors.As(err, &validateError) {
+		data.Code = http.StatusUnprocessableEntity
+		data.Message = h.httpStatusText(http.StatusUnprocessableEntity)
+		data.Validate = validateError.Fields
+	}
+
+	if errors.Is(err, exception.ClientAccessDenied) {
+		data.Code = http.StatusForbidden
+		data.Message = h.httpStatusText(http.StatusForbidden)
+	}
+
+	if errors.Is(err, exception.NotAuthorization) {
+		_ = c.Redirect(http.StatusFound, "/oauth/signin")
+		return
+	}
+
+	if utils.RequestIsJson(c.Request()) {
+		_ = c.JSON(data.Code, data)
+	} else {
+		_ = c.Render(data.Code, "error.html", data)
+	}
+}
+
+func (h *Error) httpStatusText(code int) string {
 	switch code {
 	case http.StatusContinue:
 		return "Продолжайте"

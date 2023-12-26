@@ -1,4 +1,4 @@
-package handler
+package web
 
 import (
 	"errors"
@@ -11,30 +11,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type TokenHandler struct {
+type Token struct {
 	client usecase.Client
 	token  usecase.Token
 }
 
-func NewTokenHandler(client usecase.Client, token usecase.Token) *TokenHandler {
-	return &TokenHandler{client: client, token: token}
+func NewToken(client usecase.Client, token usecase.Token) *Token {
+	return &Token{client: client, token: token}
 }
 
-// GenerateToken godoc
-// @ID          GenerateToken
-// @Summary     Получение токена доступа
-// @Description Получение токена доступа по коду или обновление токена доступа
-// @Tags        Авторизация
-// @Produce     json
-// @Param       client_id query string true "ID клиента"
-// @Param       client_secret query string true "Секрет клиента"
-// @Param       code query string false "Единоразовый авторизационный код, если grant_type=authorization_code"
-// @Param       refresh_token query string false "Единоразовый refresh токен, если grant_type=refresh_token"
-// @Param       grant_type query string true "Тип разрешения" Enums(authorization_code, refresh_token)
-// @Success 200 {object} response.AccessToken "Токен доступа"
-// @Failure default {object} response.Error "Ошибка запроса"
-// @Router      /oauth/token [post]
-func (h *TokenHandler) GenerateToken(c echo.Context) error {
+func (h *Token) GenerateToken(c echo.Context) error {
 	var err error
 
 	ctx := c.Request().Context()

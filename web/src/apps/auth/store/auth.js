@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     function signIn() {
         errors.value = {}
-        return api.post(location.href, credential.value)
+        return api.post("/api/oauth/signin", credential.value)
             .then(response => {
                 window.location.replace(response.data.location)
             })

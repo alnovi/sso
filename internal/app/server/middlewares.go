@@ -1,25 +1,18 @@
 package server
 
 import (
-	"context"
-
 	"github.com/alnovi/sso/internal/transport/http/middleware"
 	"github.com/labstack/echo/v4"
 )
 
 type Middlewares struct {
+	logger  echo.MiddlewareFunc
 	profile echo.MiddlewareFunc
 }
 
-func newMiddlewares(_ *App, s *Services) (*Middlewares, error) {
-	var err error
-
-	clientProfile, err := s.client.GetProfileClient(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
+func newMiddlewares(app *App, s *Services) (*Middlewares, error) {
 	return &Middlewares{
-		profile: middleware.AuthProfile(clientProfile.Id, clientProfile.Secret, s.token),
+		logger:  middleware.RequestLogger(app.log),
+		profile: middleware.AuthProfile(app.clients.profile, s.token),
 	}, nil
 }

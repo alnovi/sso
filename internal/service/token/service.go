@@ -58,6 +58,7 @@ func (s *Service) NewAccess(_ context.Context, user entity.User, client entity.C
 		"user_image":   user.Image,
 		"user_name":    user.Name,
 		"user_email":   user.Email,
+		"nbf":          now.Unix(),
 		"exp":          now.Add(time.Minute * ttlAccess).Unix(),
 	})
 

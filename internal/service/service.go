@@ -11,6 +11,7 @@ type Auth interface {
 }
 
 type Client interface {
+	GetManagerClient(ctx context.Context) (*entity.Client, error)
 	GetProfileClient(ctx context.Context) (*entity.Client, error)
 	GetClient(ctx context.Context, id string, callback, secret *string) (*entity.Client, error)
 }

@@ -1,0 +1,104 @@
+* {
+  box-sizing: border-box;
+}
+
+*:focus {
+  box-shadow: none !important;
+}
+
+html, body {
+  font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-weight: 500;
+  position: relative;
+  isolation: isolate;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  .wallpaper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    transition: width 0.3s;
+    background-color: white;
+    background-image: url('../../assets/error.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    &.code-403 {
+      background-image: url('../../assets/security.jpg');
+    }
+
+    @media screen and (min-width: 1250px) {
+      width: 55%;
+    }
+    @media screen and (max-width: 1250px) {
+      width: 70%;
+      left: 15%;
+    }
+    @media screen and (max-width: 820px) {
+      left: 0;
+      width: 100%;
+    }
+  }
+  .message {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    padding: 100px;
+    color: #383b4b;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: width 0.3s;
+    margin-top: -100px;
+    h1 {
+      font-size: 160px;
+      line-height: 120px;
+      margin-bottom: 10px;
+      transition: font-size 0.3s;
+    }
+    p {
+      font-size: 24px;
+      line-height: 24px;
+      transition: font-size 0.3s;
+    }
+    @media screen and (min-width: 1250px) {
+      width: 45%;
+    }
+    @media screen and (max-width: 1250px) {
+      margin-top: -50px;
+      width: 100%;
+      padding: 0;
+      justify-content: start;
+      align-items: center;
+    }
+    @media screen and (max-width: 820px) {
+      width: 100%;
+      padding: 0;
+      justify-content: start;
+      align-items: center;
+      h1 {
+        font-size: 120px;
+      }
+      p {
+        font-size: 24px;
+      }
+    }
+  }
+}
+

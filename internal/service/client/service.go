@@ -17,6 +17,10 @@ func New(repo repository.Repository) *Service {
 	return &Service{repo: repo}
 }
 
+func (s *Service) GetManagerClient(ctx context.Context) (*entity.Client, error) {
+	return s.repo.GetClientByClass(ctx, entity.ClientClassManager)
+}
+
 func (s *Service) GetProfileClient(ctx context.Context) (*entity.Client, error) {
 	return s.repo.GetClientByClass(ctx, entity.ClientClassProfile)
 }

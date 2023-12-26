@@ -1,16 +1,10 @@
 package server
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 
 	_ "github.com/alnovi/sso/docs"
-	"github.com/alnovi/sso/internal/exception"
-	"github.com/alnovi/sso/internal/pkg/template"
-	"github.com/alnovi/sso/internal/pkg/translate"
-	"github.com/alnovi/sso/internal/transport/http/response"
-	"github.com/alnovi/sso/pkg/utils"
+	"github.com/alnovi/sso/internal/transport/http/render"
 	"github.com/alnovi/sso/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -19,67 +13,43 @@ func NewHttpServer(app *App, m *Middlewares, h *Handlers) (*echo.Echo, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.Validator = validator.NewValidator()
-	e.Renderer = template.NewHtmlRenderer(app.cfg.Path.Html)
-	e.HTTPErrorHandler = httpErrorHandler
+	e.Renderer = render.New(app.cfg.Path.Html)
+	e.HTTPErrorHandler = h.err.ErrorHandle
 
-	e.Any("/", h.home.GoToAuth)
+	e.Use(m.logger)
 
-	e.GET("/oauth/signin", h.auth.Auth)
-	e.POST("/oauth/signin", h.auth.SignIn)
-	e.POST("/oauth/token", h.token.GenerateToken)
-
-	e.File("/favicon.ico", fmt.Sprintf("%s/favicon.png", app.cfg.Path.Store))
-	e.Static("/assets/*", app.cfg.Path.Assets)
-	e.Static("/store/*", app.cfg.Path.Store)
-
-	profile := e.Group("", m.profile)
-	profile.GET("/profile", h.profile.Profile)
-
-	e.GET("/doc/*", h.doc)
+	initWebRoutes(app, e, m, h)
+	initApiRoutes(app, e, m, h)
+	initOtherRoutes(app, e, m, h)
 
 	return e, nil
 }
 
-func httpErrorHandler(err error, c echo.Context) {
-	if c.Response().Committed {
-		return
-	}
+func initWebRoutes(_ *App, e *echo.Echo, m *Middlewares, h *Handlers) {
+	e.Any("/", h.web.home.GoToAuth)
 
-	data := response.Error{
-		Code:    http.StatusInternalServerError,
-		Message: translate.HttpStatusTextRU(http.StatusInternalServerError),
-	}
+	e.GET("/oauth/signin", h.web.auth.Auth)
+	e.POST("/oauth/signin", h.web.auth.SignIn)
+	e.POST("/oauth/token", h.web.token.GenerateToken)
 
-	var echoHttpError *echo.HTTPError
-	if errors.As(err, &echoHttpError) {
-		data.Code = echoHttpError.Code
-		data.Message = echoHttpError.Message.(string)
+	e.GET("/profile", h.web.profile.Profile, m.profile)
+	e.GET("/profile/callback", h.web.profile.ProfileCallback)
+}
 
-		if data.Message == http.StatusText(data.Code) {
-			data.Message = translate.HttpStatusTextRU(data.Code)
-		}
-	}
+func initApiRoutes(_ *App, e *echo.Echo, m *Middlewares, h *Handlers) {
+	g := e.Group("/api")
 
-	var validateError *validator.ValidateError
-	if errors.As(err, &validateError) {
-		data.Code = http.StatusUnprocessableEntity
-		data.Message = translate.HttpStatusTextRU(http.StatusUnprocessableEntity)
-		data.Validate = validateError.Fields
-	}
+	g.POST("/oauth/signin", h.api.auth.SignIn)
 
-	if errors.Is(err, exception.ClientAccessDenied) {
-		data.Code = http.StatusForbidden
-		data.Message = translate.HttpStatusTextRU(http.StatusForbidden)
-	}
+	g.GET("/profile", h.api.profile.UserInfo, m.profile)
+	g.PUT("/profile", h.api.profile.ChangeInfo, m.profile)
+	g.PUT("/profile/password", h.api.profile.ChangePassword, m.profile)
+}
 
-	if errors.Is(err, exception.NotAuthorization) {
-		_ = c.Redirect(http.StatusFound, "/oauth/signin")
-		return
-	}
+func initOtherRoutes(app *App, e *echo.Echo, m *Middlewares, h *Handlers) {
+	e.File("/favicon.ico", fmt.Sprintf("%s/favicon.png", app.cfg.Path.Store))
+	e.Static("/assets/*", app.cfg.Path.Assets)
+	e.Static("/store/*", app.cfg.Path.Store)
 
-	if utils.RequestIsJson(c.Request()) {
-		_ = c.JSON(data.Code, data)
-	} else {
-		_ = c.Render(data.Code, "error.html", data)
-	}
+	e.GET("/doc/*", h.doc)
 }
