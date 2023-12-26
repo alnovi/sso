@@ -1,10 +1,13 @@
 package response
 
+type User struct {
+	UID   string `json:"uid"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 type UserInfo struct {
-	// ID пользовтаеля
-	UID string `json:"uid"`
-	// Полное имя пользовтаеля
-	Name string `json:"name"`
-	// Email пользователя
+	UID   string `json:"uid"`
+	Name  string `json:"name"`
 	Email string `json:"email"`
 }

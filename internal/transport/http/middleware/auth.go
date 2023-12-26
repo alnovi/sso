@@ -11,6 +11,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	KeyToken    = "token"
+	KeyUserId   = "user_id"
+	KeyClientId = "client_id"
+)
+
 func AuthProfile(profile *entity.Client, ts service.Token) func(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -26,9 +32,9 @@ func AuthProfile(profile *entity.Client, ts service.Token) func(next echo.Handle
 				return echo.NewHTTPError(http.StatusUnauthorized).SetInternal(err)
 			}
 
-			c.Set("token", token)
-			c.Set("user_id", token.UserId)
-			c.Set("client_id", token.ClientId)
+			c.Set(KeyToken, *token)
+			c.Set(KeyUserId, *token.UserId)
+			c.Set(KeyClientId, *token.ClientId)
 
 			return next(c)
 		}
