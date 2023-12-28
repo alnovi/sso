@@ -105,15 +105,15 @@ func (s *Service) NewRefresh(ctx context.Context, user entity.User, client entit
 
 func (s *Service) FindToken(ctx context.Context, client entity.Client, class, hash string) (*entity.Token, error) {
 	token, err := s.repo.GetTokenByClassAndHash(ctx, class, hash)
-	if errors.Is(err, exception.TokenNotFound) {
+	if errors.Is(err, exception.ErrTokenNotFound) {
 		return nil, err
 	}
 	if err != nil {
-		return nil, exception.Wrap(exception.TokenNotFound, err)
+		return nil, exception.Wrap(exception.ErrTokenNotFound, err)
 	}
 
 	if *token.ClientId != client.Id {
-		return nil, exception.Wrap(exception.TokenNotFound, errors.New("token does not belong to the client"))
+		return nil, exception.Wrap(exception.ErrTokenNotFound, errors.New("token does not belong to the client"))
 	}
 
 	return token, err

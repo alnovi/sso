@@ -1,13 +1,13 @@
 package exception
 
 var (
-	PasswordIncorrect = New("password incorrect")
-	NotAuthorization  = New("not authorization")
+	ErrPasswordIncorrect = New("password incorrect")
+	ErrNotAuthorization  = New("not authorization")
 
-	ClientNotFound     = New("client not found")
-	ClientAccessDenied = New("access denied")
+	ErrClientNotFound     = New("client not found")
+	ErrClientAccessDenied = New("access denied")
 
-	TokenNotFound = New("token not found")
+	ErrTokenNotFound = New("token not found")
 
-	UserNotFound = New("user not found")
+	ErrUserNotFound = New("user not found")
 )

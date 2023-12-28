@@ -23,7 +23,7 @@ func (s *Service) AuthByCredentials(ctx context.Context, login, password string)
 	}
 
 	if user.Password != password {
-		return nil, exception.PasswordIncorrect
+		return nil, exception.ErrPasswordIncorrect
 	}
 
 	return user, nil

@@ -53,7 +53,7 @@ func (h *Token) GenerateToken(c echo.Context) error {
 
 	access, refresh, err := h.token.AccessAndRefreshToken(ctx, dtoToken)
 	if err != nil {
-		if errors.Is(err, exception.ClientAccessDenied) {
+		if errors.Is(err, exception.ErrClientAccessDenied) {
 			return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
 		}
 		if exception.Is(err) {

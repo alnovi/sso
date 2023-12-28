@@ -62,10 +62,10 @@ func (h *Auth) SignIn(c echo.Context) error {
 
 	user, callback, err := h.auth.AuthByCredentials(ctx, dtoAuth)
 	if err != nil {
-		if errors.Is(err, exception.UserNotFound) {
+		if errors.Is(err, exception.ErrUserNotFound) {
 			return validator.NewValidateErrorWithMessage("login", "Пользователь не найден")
 		}
-		if errors.Is(err, exception.PasswordIncorrect) {
+		if errors.Is(err, exception.ErrPasswordIncorrect) {
 			return validator.NewValidateErrorWithMessage("password", "Не верный пароль")
 		}
 		return err

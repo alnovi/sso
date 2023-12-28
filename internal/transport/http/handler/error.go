@@ -45,12 +45,12 @@ func (h *Error) ErrorHandle(err error, c echo.Context) {
 		data.Validate = validateError.Fields
 	}
 
-	if errors.Is(err, exception.ClientAccessDenied) {
+	if errors.Is(err, exception.ErrClientAccessDenied) {
 		data.Code = http.StatusForbidden
 		data.Message = h.httpStatusText(http.StatusForbidden)
 	}
 
-	if errors.Is(err, exception.NotAuthorization) {
+	if errors.Is(err, exception.ErrNotAuthorization) {
 		_ = c.Redirect(http.StatusFound, "/oauth/signin")
 		return
 	}

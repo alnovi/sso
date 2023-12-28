@@ -11,12 +11,14 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+type ctxKey string
+
 const (
-	keyTx           = "tx"
-	tableClients    = "clients"
-	tablePermission = "permissions"
-	tableTokens     = "tokens"
-	tableUsers      = "users"
+	keyTx           ctxKey = "tx"
+	tableClients    string = "clients"
+	tablePermission string = "permissions"
+	tableTokens     string = "tokens"
+	tableUsers      string = "users"
 )
 
 type Config struct {

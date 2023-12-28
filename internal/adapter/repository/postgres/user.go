@@ -41,7 +41,7 @@ func (r *Repository) GetUserById(ctx context.Context, id string) (*entity.User, 
 		)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.UserNotFound
+		return nil, exception.ErrUserNotFound
 	}
 
 	return result, err
@@ -70,7 +70,7 @@ func (r *Repository) GetUserByLoginOrEmail(ctx context.Context, login string) (*
 		)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.UserNotFound
+		return nil, exception.ErrUserNotFound
 	}
 
 	return result, err

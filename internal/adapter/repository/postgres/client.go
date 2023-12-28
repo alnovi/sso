@@ -47,7 +47,7 @@ func (r *Repository) GetClientByID(ctx context.Context, id string) (*entity.Clie
 		)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.ClientNotFound
+		return nil, exception.ErrClientNotFound
 	}
 
 	return result, err
@@ -76,7 +76,7 @@ func (r *Repository) GetClientByClass(ctx context.Context, class string) (*entit
 		)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.ClientNotFound
+		return nil, exception.ErrClientNotFound
 	}
 
 	return result, err

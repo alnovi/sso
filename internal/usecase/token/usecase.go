@@ -36,7 +36,7 @@ func (uc *UseCase) AccessAndRefreshToken(ctx context.Context, dto dto.AccessToke
 		class = entity.TokenClassRefresh
 		hash = dto.Refresh
 	default:
-		return nil, nil, exception.Wrap(exception.TokenNotFound, fmt.Errorf("grant_type '%s' is not supported", dto.GrantType))
+		return nil, nil, exception.Wrap(exception.ErrTokenNotFound, fmt.Errorf("grant_type '%s' is not supported", dto.GrantType))
 	}
 
 	token, err := uc.token.FindToken(ctx, dto.Client, class, hash)
@@ -48,7 +48,7 @@ func (uc *UseCase) AccessAndRefreshToken(ctx context.Context, dto dto.AccessToke
 
 	user, err := uc.user.GetUserById(ctx, *token.UserId)
 	if err != nil {
-		return nil, nil, exception.Wrap(exception.TokenNotFound, err)
+		return nil, nil, exception.Wrap(exception.ErrTokenNotFound, err)
 	}
 
 	if err = uc.user.CanUseClient(ctx, *user, dto.Client); err != nil {

@@ -114,7 +114,7 @@ func (r *Repository) GetTokenByClassAndHash(ctx context.Context, class, hash str
 		)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.TokenNotFound
+		return nil, exception.ErrTokenNotFound
 	}
 
 	return result, err
@@ -142,7 +142,7 @@ func (r *Repository) GetTokenByClientAndHash(ctx context.Context, clientId, hash
 		)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.TokenNotFound
+		return nil, exception.ErrTokenNotFound
 	}
 
 	return result, err
@@ -165,6 +165,10 @@ func (r *Repository) TokensByUser(ctx context.Context, userId string, class *str
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	for rows.Next() {
 		token := &entity.Token{}
