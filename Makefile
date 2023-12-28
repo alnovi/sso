@@ -12,23 +12,17 @@ help:
 	@echo 'The commands are:'
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
 
-## init: установка требуемых программ
+## init: установка требуемых утилит
 .PHONY: init
 init:
-	go install github.com/swaggo/swag/cmd/swag@latest
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go get -u github.com/golang-migrate/migrate
+	go install github.com/pressly/goose/v3/cmd/goose@latest
+	go get -u github.com/pressly/goose/v3
 
 ## migration: новая миграция
 .PHONY: migration
 migration:
 	@read -p "Введите название миграции: " migration_name; \
-	migrate create -ext sql -dir ./scripts/migrations $$migration_name
-
-## swag: генерация документации
-.PHONY: swag
-swag:
-	swag init -g main.go -p snakecase -d ./cmd/server,./internal/transport/http/request,./internal/transport/http/response,./internal/transport/http/handler
+	goose -dir=./scripts/migrations create $$migration_name sql
 
 ## lint: статический анализ
 .PHONY: lint

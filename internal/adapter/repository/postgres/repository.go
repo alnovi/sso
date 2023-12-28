@@ -6,12 +6,9 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/alnovi/sso/pkg/migrator"
-	"github.com/alnovi/sso/scripts/migrations"
-
-	//"github.com/alnovi/sso/pkg/migrator"
-	//"github.com/alnovi/sso/scripts/migrations"
+	"github.com/alnovi/sso/scripts"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 const (
@@ -61,7 +58,14 @@ func NewRepository(cfg Config) (*Repository, error) {
 }
 
 func (r *Repository) MigrateUp() error {
-	return migrator.MigrateFromFS(r.db, migrations.Schema, ".")
+	goose.SetBaseFS(scripts.MigrateSchema)
+
+	err := goose.SetDialect("postgres")
+	if err != nil {
+		return err
+	}
+
+	return goose.Up(r.db, "migrations")
 }
 
 func (r *Repository) Close() error {

@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 
-	_ "github.com/alnovi/sso/docs"
 	"github.com/alnovi/sso/internal/transport/http/render"
 	"github.com/alnovi/sso/pkg/validator"
 	"github.com/labstack/echo/v4"
@@ -50,6 +49,4 @@ func initOtherRoutes(app *App, e *echo.Echo, m *Middlewares, h *Handlers) {
 	e.File("/favicon.ico", fmt.Sprintf("%s/favicon.png", app.cfg.Path.Store))
 	e.Static("/assets/*", app.cfg.Path.Assets)
 	e.Static("/store/*", app.cfg.Path.Store)
-
-	e.GET("/doc/*", h.doc)
 }

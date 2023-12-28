@@ -4,8 +4,6 @@ import (
 	"github.com/alnovi/sso/internal/transport/http/handler"
 	"github.com/alnovi/sso/internal/transport/http/handler/api"
 	"github.com/alnovi/sso/internal/transport/http/handler/web"
-	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 type ApiHandlers struct {
@@ -24,7 +22,6 @@ type Handlers struct {
 	web *WebHandlers
 	api *ApiHandlers
 	err *handler.Error
-	doc echo.HandlerFunc
 }
 
 func newHandlers(app *App, uc *UseCases) (*Handlers, error) {
@@ -44,6 +41,5 @@ func newHandlers(app *App, uc *UseCases) (*Handlers, error) {
 		web: webHandlers,
 		api: apiHandlers,
 		err: handler.NewError(),
-		doc: echoSwagger.WrapHandler,
 	}, nil
 }
