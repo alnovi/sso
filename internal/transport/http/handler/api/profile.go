@@ -10,30 +10,57 @@ import (
 )
 
 type Profile struct {
-	user usecase.User
+	profile usecase.Profile
 }
 
-func NewProfile(user usecase.User) *Profile {
-	return &Profile{user: user}
+func NewProfile(profile usecase.Profile) *Profile {
+	return &Profile{profile: profile}
 }
 
 func (h *Profile) UserInfo(c echo.Context) error {
 	userId := c.Get(middleware.KeyUserId).(string)
 
-	user, err := h.user.UserInfo(c.Request().Context(), userId)
+	user, tokens, clients, err := h.profile.Profile(c.Request().Context(), userId)
 	if err != nil {
 		return err
 	}
 
-	//TODO: информация о аватарке
-	//TODO: информация о токенах
-	//TODO: информация о доступных приложениях
+	res := response.Profile{
+		Id:      user.Id,
+		Name:    user.Name,
+		Image:   user.Image,
+		Email:   user.Email,
+		Tokens:  make([]response.ProfileToken, 0),
+		Clients: make([]response.ProfileClient, 0),
+	}
 
-	return c.JSON(http.StatusOK, response.User{
-		UID:   user.Id,
-		Name:  user.Name,
-		Email: user.Email,
-	})
+	for _, token := range tokens {
+		meta := new(response.ProfileTokenMeta)
+
+		if token.Meta != nil {
+			meta.IP = token.Meta.IP
+			meta.Agent = token.Meta.Agent
+		}
+
+		res.Tokens = append(res.Tokens, response.ProfileToken{
+			Id:        token.Id,
+			Class:     token.Class,
+			Meta:      meta,
+			CreatedAt: token.CreatedAt,
+			UpdatedAt: token.UpdatedAt,
+		})
+	}
+
+	for _, client := range clients {
+		res.Clients = append(res.Clients, response.ProfileClient{
+			Id:          client.Id,
+			Name:        client.Name,
+			Description: client.Description,
+			Logo:        client.Logo,
+		})
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *Profile) ChangeInfo(c echo.Context) error {

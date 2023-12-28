@@ -30,7 +30,7 @@ type Handlers struct {
 func newHandlers(app *App, uc *UseCases) (*Handlers, error) {
 	apiHandlers := &ApiHandlers{
 		auth:    api.NewAuth(uc.auth, uc.client),
-		profile: api.NewProfile(uc.user),
+		profile: api.NewProfile(uc.profile),
 	}
 
 	webHandlers := &WebHandlers{

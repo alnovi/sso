@@ -22,7 +22,6 @@ type Token interface {
 	AccessAndRefreshToken(ctx context.Context, dto dto.AccessToken) (*entity.TokenWithUser, *entity.Token, error)
 }
 
-type User interface {
-	UserInfo(ctx context.Context, userId string) (*entity.User, error)
-	UserUpdate(ctx context.Context, user *entity.User) error
+type Profile interface {
+	Profile(ctx context.Context, userId string) (*entity.User, []*entity.Token, []*entity.Client, error)
 }

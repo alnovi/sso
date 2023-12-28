@@ -45,10 +45,10 @@ func (h *Auth) SignIn(c echo.Context) error {
 	}
 
 	client, err := h.client.ClientForAuth(ctx, dtoClient)
-	if exception.Is(err) {
-		return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
-	}
 	if err != nil {
+		if exception.Is(err) {
+			return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 
@@ -61,13 +61,13 @@ func (h *Auth) SignIn(c echo.Context) error {
 	}
 
 	user, callback, err := h.auth.AuthByCredentials(ctx, dtoAuth)
-	if errors.Is(err, exception.UserNotFound) {
-		return validator.NewValidateErrorWithMessage("login", "Пользователь не найден")
-	}
-	if errors.Is(err, exception.PasswordIncorrect) {
-		return validator.NewValidateErrorWithMessage("password", "Не верный пароль")
-	}
 	if err != nil {
+		if errors.Is(err, exception.UserNotFound) {
+			return validator.NewValidateErrorWithMessage("login", "Пользователь не найден")
+		}
+		if errors.Is(err, exception.PasswordIncorrect) {
+			return validator.NewValidateErrorWithMessage("password", "Не верный пароль")
+		}
 		return err
 	}
 

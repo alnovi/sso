@@ -119,6 +119,10 @@ func (s *Service) FindToken(ctx context.Context, client entity.Client, class, ha
 	return token, err
 }
 
+func (s *Service) TokensByUserAndClass(ctx context.Context, userId, class string) ([]*entity.Token, error) {
+	return s.repo.TokensByUser(ctx, userId, &class)
+}
+
 func (s *Service) RemoveToken(ctx context.Context, tokenId string) error {
 	return s.repo.DeleteToken(ctx, tokenId)
 }

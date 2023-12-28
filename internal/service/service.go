@@ -22,6 +22,7 @@ type Token interface {
 	NewRefresh(ctx context.Context, user entity.User, client entity.Client, meta *entity.TokenMeta) (*entity.Token, error)
 	Validate(ctx context.Context, clientId, secret, class, hash string) (*entity.Token, error)
 	FindToken(ctx context.Context, client entity.Client, class, hash string) (*entity.Token, error)
+	TokensByUserAndClass(ctx context.Context, userId, class string) ([]*entity.Token, error)
 	RemoveToken(ctx context.Context, tokenId string) error
 }
 

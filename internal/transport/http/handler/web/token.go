@@ -37,10 +37,10 @@ func (h *Token) GenerateToken(c echo.Context) error {
 	}
 
 	client, err := h.client.ClientForToken(ctx, dtoClient)
-	if exception.Is(err) {
-		return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
-	}
 	if err != nil {
+		if exception.Is(err) {
+			return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 
@@ -52,19 +52,20 @@ func (h *Token) GenerateToken(c echo.Context) error {
 	}
 
 	access, refresh, err := h.token.AccessAndRefreshToken(ctx, dtoToken)
-	if errors.Is(err, exception.ClientAccessDenied) {
-		return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
-	}
-	if exception.Is(err) {
-		return echo.NewHTTPError(http.StatusUnauthorized).SetInternal(err)
-	}
 	if err != nil {
+		if errors.Is(err, exception.ClientAccessDenied) {
+			return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
+		}
+		if exception.Is(err) {
+			return echo.NewHTTPError(http.StatusUnauthorized).SetInternal(err)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 
-	userInfo := response.UserInfo{
+	user := response.User{
 		UID:   access.User.Id,
 		Name:  access.User.Name,
+		Image: access.User.Image,
 		Email: access.User.Email,
 	}
 
@@ -73,6 +74,6 @@ func (h *Token) GenerateToken(c echo.Context) error {
 		AccessToken:  access.Hash,
 		RefreshToken: refresh.Hash,
 		ExpiresIn:    access.Expiration.Unix(),
-		Info:         userInfo,
+		Info:         user,
 	})
 }

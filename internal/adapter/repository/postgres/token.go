@@ -147,3 +147,44 @@ func (r *Repository) GetTokenByClientAndHash(ctx context.Context, clientId, hash
 
 	return result, err
 }
+
+func (r *Repository) TokensByUser(ctx context.Context, userId string, class *string) ([]*entity.Token, error) {
+	var err error
+	var tokens []*entity.Token
+
+	filter := squirrel.Eq{"user_id": userId}
+	if class != nil {
+		filter["class"] = class
+	}
+
+	rows, err := r.qb.Select(tokenFields...).
+		From(tableTokens).
+		Where(filter).
+		RunWith(r.connect(ctx)).
+		QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		token := &entity.Token{}
+		err = rows.Scan(
+			&token.Id,
+			&token.Class,
+			&token.Hash,
+			&token.UserId,
+			&token.ClientId,
+			&token.Meta,
+			&token.NotBefore,
+			&token.Expiration,
+			&token.CreatedAt,
+			&token.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, token)
+	}
+
+	return tokens, nil
+}

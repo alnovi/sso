@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/alnovi/sso/internal/dto"
 	"github.com/alnovi/sso/internal/exception"
@@ -32,15 +33,18 @@ func (h *Auth) Auth(c echo.Context) error {
 	}
 
 	client, err := h.client.ClientForAuth(ctx, dtoClient)
-	if exception.Is(err) {
-		return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
-	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
+		if exception.Is(err) {
+			return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
+		}
+		//return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
+		return err
 	}
 
 	cookie, err := c.Cookie(cookies.NameAuth)
 	if err == nil {
+		var callback *url.URL
+
 		dtoAuth := dto.AuthById{
 			Client: *client,
 			UserId: cookie.Value,
@@ -48,11 +52,14 @@ func (h *Auth) Auth(c echo.Context) error {
 			Agent:  c.Request().UserAgent(),
 		}
 
-		if _, callback, err := h.auth.AuthById(ctx, dtoAuth); err == nil {
+		_, callback, err = h.auth.AuthById(ctx, dtoAuth)
+		if err != nil {
 			//cookie.Expires = time.Now()
 			//c.SetCookie(cookie)
-			return c.Redirect(http.StatusMovedPermanently, callback.String())
+			return err
 		}
+
+		return c.Redirect(http.StatusFound, callback.String())
 	}
 
 	return c.Render(http.StatusOK, "auth.html", echo.Map{
@@ -81,10 +88,11 @@ func (h *Auth) SignIn(c echo.Context) error {
 	}
 
 	client, err := h.client.ClientForAuth(ctx, dtoClient)
-	if exception.Is(err) {
-		return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
-	}
 	if err != nil {
+		if exception.Is(err) {
+			return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
+		}
+
 		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 
@@ -97,13 +105,13 @@ func (h *Auth) SignIn(c echo.Context) error {
 	}
 
 	user, callback, err := h.auth.AuthByCredentials(ctx, dtoAuth)
-	if errors.Is(err, exception.UserNotFound) {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Пользователь не найден")
-	}
-	if errors.Is(err, exception.PasswordIncorrect) {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Пользователь не найден")
-	}
 	if err != nil {
+		if errors.Is(err, exception.UserNotFound) {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Пользователь не найден")
+		}
+		if errors.Is(err, exception.PasswordIncorrect) {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Пользователь не найден")
+		}
 		return err
 	}
 

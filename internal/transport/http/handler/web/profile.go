@@ -7,6 +7,7 @@ import (
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/exception"
 	"github.com/alnovi/sso/internal/pkg/cookies"
+	"github.com/alnovi/sso/internal/transport/http/middleware"
 	"github.com/alnovi/sso/internal/usecase"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +22,7 @@ func NewProfile(profile *entity.Client, token usecase.Token) *Profile {
 }
 
 func (h *Profile) Profile(c echo.Context) error {
-	token, ok := c.Get("token").(*entity.Token)
+	token, ok := c.Get(middleware.KeyToken).(entity.Token)
 	if !ok || *token.ClientId != h.profile.Id {
 		return echo.NewHTTPError(http.StatusUnauthorized)
 	}
