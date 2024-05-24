@@ -1,0 +1,32 @@
+name: Testing App
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.*'
+
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v6.0.1
+
+      - name: Build
+        run: go mod download
+
+      - name: Lint
+        uses: golangci-lint run ./...
+
+      - name: Test
+        run: go test -v ./tests/...
