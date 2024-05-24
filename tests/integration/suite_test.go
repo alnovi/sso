@@ -46,10 +46,10 @@ func (s *TestSuite) TearDownSuite() {
 }
 
 func (s *TestSuite) SetupTest() {
-	ctx := context.WithValue(context.Background(), "Environment", s.App.Config().App.Environment)
-	ctx = context.WithValue(ctx, "ClientAdminID", s.App.Config().Client.AdminID)
-	ctx = context.WithValue(ctx, "ClientProfileID", s.App.Config().Client.ProfileID)
-	ctx = context.WithValue(ctx, "UserAdminID", s.App.Config().User.AdminID)
+	ctx := context.WithValue(context.Background(), config.KeyEnvironment, s.App.Config().App.Environment)
+	ctx = context.WithValue(ctx, config.KeyClientAdminID, s.App.Config().Client.AdminID)
+	ctx = context.WithValue(ctx, config.KeyClientProfileID, s.App.Config().Client.ProfileID)
+	ctx = context.WithValue(ctx, config.KeyUserAdminID, s.App.Config().User.AdminID)
 	err := s.App.Repository().MigrateUp(ctx, s.App.Logger())
 	s.Require().NoError(err)
 }

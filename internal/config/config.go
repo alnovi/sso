@@ -5,7 +5,14 @@ import "time"
 const (
 	EnvProduction = "production"
 	EnvTesting    = "testing"
+
+	KeyEnvironment key = iota
+	KeyClientAdminID
+	KeyClientProfileID
+	KeyUserAdminID
 )
+
+type key int
 
 type Config struct {
 	App    App    `env:",prefix=APP_"`

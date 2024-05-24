@@ -52,10 +52,10 @@ func (p *Provider) Repository() *postgres.Repository {
 			panic(err)
 		}
 
-		ctx := context.WithValue(context.Background(), "Environment", p.Config().App.Environment)
-		ctx = context.WithValue(ctx, "ClientAdminID", p.Config().Client.AdminID)
-		ctx = context.WithValue(ctx, "ClientProfileID", p.Config().Client.ProfileID)
-		ctx = context.WithValue(ctx, "UserAdminID", p.Config().User.AdminID)
+		ctx := context.WithValue(context.Background(), config.KeyEnvironment, p.Config().App.Environment)
+		ctx = context.WithValue(ctx, config.KeyClientAdminID, p.Config().Client.AdminID)
+		ctx = context.WithValue(ctx, config.KeyClientProfileID, p.Config().Client.ProfileID)
+		ctx = context.WithValue(ctx, config.KeyUserAdminID, p.Config().User.AdminID)
 
 		if err = p.repository.MigrateUp(ctx, p.Logger()); err != nil {
 			panic(err)

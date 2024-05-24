@@ -191,7 +191,7 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			c := s.App.Server.NewContext(req, rec)
 
 			if err := s.SendToServer(s.App.Provider.WebAuth().Authorize, c); err != nil {
-				s.Assert().ErrorAs(err, &tc.expErr, "not assert error")
+				s.Assert().ErrorAs(err, &tc.expErr, "not assert error") //nolint:gosec
 			}
 
 			if tc.expBody != "" {
