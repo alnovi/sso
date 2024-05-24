@@ -4,12 +4,9 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,9 +16,14 @@ jobs:
       - uses: golangci/golangci-lint-action@v6
         with:
           version: v1.58
-      - name: Build
-        run: go mod download
-      - name: Lint
+      - name: go lint
         run: golangci-lint run ./...
-      - name: Test
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+      - name: go test
         run: go test -v ./tests/...
