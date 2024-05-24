@@ -1,0 +1,24 @@
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - bodyclose
+    - cyclop
+    - errname
+    - exportloopref
+    - gocyclo
+    - gomnd
+    - gosec
+    - nilnil
+    - nilerr
+    - tenv
+    - unconvert
+    - whitespace
+    - gosimple
+    - goconst
+    - sqlclosecheck

@@ -1,0 +1,53 @@
+package logger
+
+import (
+	"log/slog"
+	"os"
+)
+
+const (
+	FormatJson   = "json"
+	FormatText   = "text"
+	FormatPretty = "pretty"
+	FormatStub   = "stub"
+
+	LevelDebug = "debug"
+	LevelInfo  = "info"
+	LevelWarn  = "warn"
+	LevelError = "error"
+)
+
+type Config struct {
+	Format string
+	Level  string
+}
+
+func (c Config) level() slog.Level {
+	switch c.Level {
+	case LevelDebug:
+		return slog.LevelDebug
+	case LevelInfo:
+		return slog.LevelInfo
+	case LevelWarn:
+		return slog.LevelWarn
+	case LevelError:
+		return slog.LevelError
+	default:
+		return slog.LevelError
+	}
+}
+
+func (c Config) handler(opts slog.HandlerOptions) slog.Handler {
+	switch c.Format {
+	case FormatJson:
+		return slog.NewJSONHandler(os.Stdout, &opts)
+	case FormatText:
+		return slog.NewTextHandler(os.Stdout, &opts)
+	case FormatPretty:
+		return NewPrettyHandler(os.Stdout, &opts)
+	case FormatStub:
+		return NewStubHandler(os.Stdout, &opts)
+	default:
+		return slog.NewJSONHandler(os.Stdout, &opts)
+	}
+}

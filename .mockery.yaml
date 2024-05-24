@@ -1,0 +1,9 @@
+with-expecter: True
+inpackage: True
+dir: mocks/{{ replaceAll .InterfaceDirRelative "internal" "" }}
+mockname: "{{.InterfaceName}}"
+outpkg: "{{.PackageName}}"
+filename: "{{ lower .InterfaceName}}.go"
+all: True
+packages:
+  github.com/alnovi/sso/internal/adapter:
