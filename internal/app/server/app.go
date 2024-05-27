@@ -31,6 +31,7 @@ func New(cfg *config.Config) *App {
 
 	app.Server.ApplyController("", []server.Controller{
 		app.WebAuth(),
+		app.WebToken(),
 	})
 
 	app.Server.ApplyController("/api", []server.Controller{})

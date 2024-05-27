@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	TokenTypeCode          = "code"
-	TokenTypeAccess        = "access"
-	TokenTypeRefresh       = "refresh"
-	TokenTypeResetPassword = "reset-password"
+	TokenClassCode          = "code"
+	TokenClassAccess        = "access"
+	TokenClassRefresh       = "refresh"
+	TokenClassResetPassword = "reset-password"
 )
 
 type Token struct {
 	ID         string
-	Type       string
+	Class      string
 	Hash       string
 	UserID     string
 	ClientID   string

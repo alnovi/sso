@@ -6,8 +6,9 @@ import (
 
 	"github.com/alnovi/sso/internal/adapter/repository/postgres"
 	"github.com/alnovi/sso/internal/config"
+	"github.com/alnovi/sso/internal/service/secure"
 	"github.com/alnovi/sso/internal/transport/http/handler/web"
-	"github.com/alnovi/sso/internal/usecase/auth"
+	"github.com/alnovi/sso/internal/usecase"
 	"github.com/alnovi/sso/pkg/closer"
 	"github.com/alnovi/sso/pkg/logger"
 )
@@ -17,7 +18,10 @@ type Provider struct {
 	logger     *slog.Logger
 	closer     *closer.Closer
 	repository *postgres.Repository
+	secure     *secure.Secure
+	useCase    *usecase.UseCase
 	webAuth    *web.AuthHandler
+	webToken   *web.TokenHandler
 }
 
 func NewProvider(cfg *config.Config) *Provider {
@@ -67,12 +71,23 @@ func (p *Provider) Repository() *postgres.Repository {
 	return p.repository
 }
 
+func (p *Provider) UseCase() *usecase.UseCase {
+	if p.useCase == nil {
+		p.useCase = usecase.New(p.Repository(), p.Secure())
+	}
+	return p.useCase
+}
+
 func (p *Provider) WebAuth() *web.AuthHandler {
 	if p.webAuth == nil {
-		p.webAuth = web.NewAuthHandler(
-			p.Config().Client.ProfileID,
-			auth.NewUseCase(p.Repository()),
-		)
+		p.webAuth = web.NewAuthHandler(p.Config().Client.ProfileID, p.UseCase())
 	}
 	return p.webAuth
+}
+
+func (p *Provider) WebToken() *web.TokenHandler {
+	if p.webToken == nil {
+		p.webToken = web.NewTokenHandler(p.UseCase())
+	}
+	return p.webToken
 }

@@ -8,14 +8,33 @@ const (
 	GrantTypeRefresh = "refresh_token"
 )
 
-type InpValidateGrantType struct {
-	ClientID    string
-	GrantType   string
-	RedirectURI string
+type ValidateResponseType struct {
+	ClientID     string
+	ResponseType string
+	RedirectURI  string
 }
 
-type InpAuthByCredentials struct {
+type AuthByCredentials struct {
 	Client   *entity.Client
 	Email    string
 	Password string
+}
+
+type AccessTokenByGrantType struct {
+	GrantType    string
+	ClientID     string
+	ClientSecret string
+	TokenHash    string
+}
+
+type AccessTokenByCode struct {
+	ClientID     string
+	ClientSecret string
+	CodeHash     string
+}
+
+type AccessTokenByRefresh struct {
+	ClientID     string
+	ClientSecret string
+	RefreshHash  string
 }

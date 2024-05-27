@@ -15,18 +15,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type AuthUseCase interface {
-	ValidateGrantType(ctx context.Context, inp dto.InpValidateGrantType) (*entity.Client, error)
-	CodeByCredentials(ctx context.Context, inp dto.InpAuthByCredentials) (*entity.Token, error)
+type authUseCase interface {
+	ValidateResponseType(ctx context.Context, inp dto.ValidateResponseType) (*entity.Client, error)
+	CodeByCredentials(ctx context.Context, inp dto.AuthByCredentials) (*entity.Token, error)
 }
 
 type AuthHandler struct {
 	handler.BaseHandler
 	clientId string
-	uc       AuthUseCase
+	uc       authUseCase
 }
 
-func NewAuthHandler(clientId string, uc AuthUseCase) *AuthHandler {
+func NewAuthHandler(clientId string, uc authUseCase) *AuthHandler {
 	return &AuthHandler{clientId: clientId, uc: uc}
 }
 
@@ -38,10 +38,10 @@ func (h *AuthHandler) Home(c echo.Context) error {
 func (h *AuthHandler) SignIn(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	client, err := h.uc.ValidateGrantType(ctx, dto.InpValidateGrantType{
-		ClientID:    c.QueryParam("client_id"),
-		GrantType:   c.QueryParam("response_type"),
-		RedirectURI: c.QueryParam("redirect_uri"),
+	client, err := h.uc.ValidateResponseType(ctx, dto.ValidateResponseType{
+		ClientID:     c.QueryParam("client_id"),
+		ResponseType: c.QueryParam("response_type"),
+		RedirectURI:  c.QueryParam("redirect_uri"),
 	})
 
 	if err != nil {
@@ -72,17 +72,17 @@ func (h *AuthHandler) Authorize(c echo.Context) error {
 		return err
 	}
 
-	client, err := h.uc.ValidateGrantType(ctx, dto.InpValidateGrantType{
-		ClientID:    c.QueryParam("client_id"),
-		GrantType:   c.QueryParam("response_type"),
-		RedirectURI: c.QueryParam("redirect_uri"),
+	client, err := h.uc.ValidateResponseType(ctx, dto.ValidateResponseType{
+		ClientID:     c.QueryParam("client_id"),
+		ResponseType: c.QueryParam("response_type"),
+		RedirectURI:  c.QueryParam("redirect_uri"),
 	})
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest).SetInternal(err)
 	}
 
-	token, err := h.uc.CodeByCredentials(ctx, dto.InpAuthByCredentials{
+	token, err := h.uc.CodeByCredentials(ctx, dto.AuthByCredentials{
 		Client:   client,
 		Email:    req.Login,
 		Password: req.Password,
@@ -107,14 +107,8 @@ func (h *AuthHandler) Authorize(c echo.Context) error {
 	}
 }
 
-func (h *AuthHandler) Token(c echo.Context) error {
-	// TODO: implement me
-	return nil
-}
-
 func (h *AuthHandler) Route(e *echo.Group) {
 	e.GET("/", h.Home)
 	e.GET("/oauth/authorize/", h.SignIn)
 	e.POST("/oauth/authorize/", h.Authorize)
-	e.POST("/oauth/token/", h.Token)
 }

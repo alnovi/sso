@@ -23,7 +23,6 @@ func upCreateClientsTable(ctx context.Context, tx *sql.Tx) error {
             secret      varchar        not null,
             home        varchar        not null,
             callback    varchar        not null,
-            grant_types varchar[]      not null default array ['code']::varchar[],
             is_active   boolean        not null default true,
             created_at  timestamptz(6) not null default now(),
             updated_at  timestamptz(6) not null default now()

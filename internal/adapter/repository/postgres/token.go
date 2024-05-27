@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/alnovi/sso/internal/entity"
 )
 
 var tokenFields = []string{
 	"id",
-	"type",
+	"class",
 	"hash",
 	"user_id",
 	"client_id",
@@ -34,7 +35,7 @@ func (r *Repository) CreateToken(ctx context.Context, token *entity.Token) error
 		Columns(tokenFields[1:]...).
 		Suffix("RETURNING id").
 		Values(
-			token.Type,
+			token.Class,
 			token.Hash,
 			token.UserID,
 			token.ClientID,
@@ -47,4 +48,37 @@ func (r *Repository) CreateToken(ctx context.Context, token *entity.Token) error
 		RunWith(r.db).
 		QueryRowContext(ctx).
 		Scan(&token.ID)
+}
+
+func (r *Repository) DeleteTokenById(ctx context.Context, id string) error {
+	_, err := r.qb.Delete(tableTokens).
+		Where(sq.Eq{"id": id}).
+		RunWith(r.db).
+		ExecContext(ctx)
+
+	return err
+}
+
+func (r *Repository) TokenByClassAndHash(ctx context.Context, class, hash string) (*entity.Token, error) {
+	token := &entity.Token{}
+
+	err := r.qb.Select(tokenFields...).
+		From(tableTokens).
+		Where(sq.Eq{"class": class, "hash": hash}).
+		RunWith(r.db).
+		QueryRowContext(ctx).
+		Scan(
+			&token.ID,
+			&token.Class,
+			&token.Hash,
+			&token.UserID,
+			&token.ClientID,
+			&token.Payload,
+			&token.NotBefore,
+			&token.Expiration,
+			&token.CreatedAt,
+			&token.UpdatedAt,
+		)
+
+	return token, err
 }

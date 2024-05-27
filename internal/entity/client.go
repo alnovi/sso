@@ -12,7 +12,6 @@ type Client struct {
 	Secret      string
 	Home        string
 	Callback    string
-	GrantTypes  []string
 	IsActive    bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

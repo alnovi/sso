@@ -2,11 +2,12 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/exception"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 var clientFields = []string{
@@ -19,7 +20,6 @@ var clientFields = []string{
 	"secret",
 	"home",
 	"callback",
-	"grant_types",
 	"is_active",
 	"created_at",
 	"updated_at",
@@ -49,11 +49,36 @@ func (r *Repository) ClientByID(ctx context.Context, id string) (*entity.Client,
 			&client.Secret,
 			&client.Home,
 			&client.Callback,
-			pq.Array(&client.GrantTypes),
 			&client.IsActive,
 			&client.CreatedAt,
 			&client.UpdatedAt,
 		)
 
 	return client, err
+}
+
+func (r *Repository) ClientByIdAndSecret(ctx context.Context, id, secret string) (*entity.Client, error) {
+	client, err := r.ClientByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !client.IsActive || client.Secret != secret {
+		return nil, exception.ErrClientNotFound
+	}
+
+	return client, err
+}
+
+func (r *Repository) ClientTokenByClassAndHash(ctx context.Context, clientID, class, hash string) (*entity.Token, error) {
+	token, err := r.TokenByClassAndHash(ctx, class, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	if token.ClientID != clientID {
+		return nil, fmt.Errorf("token does not belong to the client")
+	}
+
+	return token, token.IsActive()
 }
