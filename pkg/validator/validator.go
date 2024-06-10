@@ -80,7 +80,11 @@ func (e *EchoValidator) convertErrors(validErrors error) *ValidateError {
 
 	for _, fe := range validErrors.(validator.ValidationErrors) {
 		namespace := strings.SplitN(fe.Namespace(), ".", 2) //nolint:gomnd
-		err.Fields[namespace[1]] = fe.Translate(e.translator)
+		if len(namespace) == 1 {
+			err.Fields[namespace[0]] = fe.Translate(e.translator)
+		} else {
+			err.Fields[namespace[1]] = fe.Translate(e.translator)
+		}
 	}
 
 	return err
