@@ -25,8 +25,8 @@ func upAddSystemUsers(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	query := `insert into users(id, name, email, password) values ($1, 'Admin', 'admin@example.ru', $2);`
-	_, err = tx.ExecContext(ctx, query, UserAdminID(ctx), password)
+	query := `insert into users(id, name, email, password) values ($1, 'Admin', $2, $3);`
+	_, err = tx.ExecContext(ctx, query, UserAdminID(ctx), UserAdminEmail(ctx), password)
 
 	return err
 }

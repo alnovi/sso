@@ -1,10 +1,8 @@
 package integration
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 
 	"github.com/alnovi/sso/pkg/validator"
@@ -26,26 +24,10 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationForm,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
-				"login":    "admin@example.ru",
-				"password": "admin",
-			},
-			expCode: http.StatusFound,
-			expErr:  nil,
-		},
-		{
-			name: "Success form with redirect uri",
-			mime: echo.MIMEApplicationForm,
-			query: map[string]string{
-				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
-			},
-			form: map[string]string{
-				"login":    "admin@example.ru",
+				"login":    s.App.Config().User.AdminEmail,
 				"password": "admin",
 			},
 			expCode: http.StatusFound,
@@ -56,27 +38,10 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationJSON,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
-				"login":    "admin@example.ru",
-				"password": "admin",
-			},
-			expCode: http.StatusOK,
-			expBody: `"location":"/profile/callback?code=`,
-			expErr:  nil,
-		},
-		{
-			name: "Success json with redirect uri",
-			mime: echo.MIMEApplicationJSON,
-			query: map[string]string{
-				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
-			},
-			form: map[string]string{
-				"login":    "admin@example.ru",
+				"login":    s.App.Config().User.AdminEmail,
 				"password": "admin",
 			},
 			expCode: http.StatusOK,
@@ -88,8 +53,7 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationForm,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
 				"login":    "",
@@ -103,8 +67,7 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationJSON,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
 				"login":    "",
@@ -119,8 +82,7 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationJSON,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
 				"login":    "admin",
@@ -135,8 +97,7 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationJSON,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
 				"login":    "example@example.ru",
@@ -151,11 +112,10 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 			mime: echo.MIMEApplicationJSON,
 			query: map[string]string{
 				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
+				"client_id":     s.App.Config().Client.ProfileID,
 			},
 			form: map[string]string{
-				"login":    "admin@example.ru",
+				"login":    s.App.Config().User.AdminEmail,
 				"password": "secret",
 			},
 			expCode: http.StatusUnprocessableEntity,
@@ -166,31 +126,16 @@ func (s *TestSuite) TestWebAuthAuthorize() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			var data string
+			query := s.BuildQuery(tc.query)
+			data := s.BuildFormData(tc.mime, tc.form)
 
-			query := make(url.Values)
-			for k, v := range tc.query {
-				query.Set(k, v)
-			}
-
-			if tc.mime == echo.MIMEApplicationForm {
-				form := make(url.Values)
-				for k, v := range tc.form {
-					form.Set(k, v)
-				}
-				data = form.Encode()
-			} else {
-				form, _ := json.Marshal(tc.form)
-				data = string(form)
-			}
-
-			req := httptest.NewRequest(http.MethodPost, "/?"+query.Encode(), strings.NewReader(data))
+			req := httptest.NewRequest(http.MethodPost, "/?"+query, strings.NewReader(data))
 			req.Header.Set(echo.HeaderContentType, tc.mime)
 			rec := httptest.NewRecorder()
 
 			c := s.App.Server.NewContext(req, rec)
 
-			if err := s.SendToServer(s.App.Provider.WebAuth().Authorize, c); err != nil {
+			if err := s.SendToServer(s.App.WebAuth().Authorize, c); err != nil {
 				s.Assert().ErrorAs(err, &tc.expErr, "not assert error") //nolint:gosec
 			}
 

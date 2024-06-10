@@ -85,7 +85,7 @@ func (s *Secure) NewAccessToken(ctx context.Context, user *entity.User, client *
 	return token, s.repo.CreateToken(ctx, token)
 }
 
-func (s *Secure) NewRefreshToken(ctx context.Context, user *entity.User, client *entity.Client) (*entity.Token, error) {
+func (s *Secure) NewRefreshToken(ctx context.Context, user *entity.User, client *entity.Client, ip, agent string) (*entity.Token, error) {
 	now := time.Now()
 
 	token := &entity.Token{
@@ -93,8 +93,25 @@ func (s *Secure) NewRefreshToken(ctx context.Context, user *entity.User, client 
 		Hash:       rand.Base62(costRefresh),
 		UserID:     user.ID,
 		ClientID:   client.ID,
+		Payload:    entity.Payload{"ip": ip, "agent": agent},
 		NotBefore:  now,
 		Expiration: now.Add(ttlRefresh * time.Minute),
+	}
+
+	return token, s.repo.CreateToken(ctx, token)
+}
+
+func (s *Secure) NewResetPassword(ctx context.Context, user *entity.User, client *entity.Client, ip, agent string) (*entity.Token, error) {
+	now := time.Now()
+
+	token := &entity.Token{
+		Class:      entity.TokenClassResetPassword,
+		Hash:       rand.Base62(costReset),
+		UserID:     user.ID,
+		ClientID:   client.ID,
+		Payload:    entity.Payload{"ip": ip, "agent": agent},
+		NotBefore:  now,
+		Expiration: now.Add(ttlReset * time.Minute),
 	}
 
 	return token, s.repo.CreateToken(ctx, token)
