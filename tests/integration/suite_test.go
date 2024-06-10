@@ -2,6 +2,8 @@ package integration //nolint:typecheck
 
 import (
 	"context"
+	"encoding/json"
+	"net/url"
 	"testing"
 	"time"
 
@@ -22,8 +24,9 @@ func (l *ContainerLogger) Printf(_ string, _ ...interface{}) {}
 
 type TestSuite struct {
 	suite.Suite
-	pgContainer *postgres.PostgresContainer
-	App         *server.App
+	pgContainer   *postgres.PostgresContainer
+	smtpContainer testcontainers.Container
+	App           *server.App
 }
 
 func TestIntegration(t *testing.T) {
@@ -35,14 +38,15 @@ func (s *TestSuite) SetupSuite() {
 	cfg := &config.Config{}
 	s.initConfig(ctx, cfg)
 	s.initDatabase(ctx, cfg)
+	s.initMailServer(ctx, cfg)
 	s.NotPanics(func() {
 		s.App = server.New(cfg)
 	})
 }
 
 func (s *TestSuite) TearDownSuite() {
-	s.Must(s.App.Close())
-	s.Must(s.pgContainer.Terminate(context.Background()))
+	s.Require().NoError(s.App.Close())
+	s.Require().NoError(s.pgContainer.Terminate(context.Background()))
 }
 
 func (s *TestSuite) SetupTest() {
@@ -50,6 +54,7 @@ func (s *TestSuite) SetupTest() {
 	ctx = context.WithValue(ctx, config.KeyClientAdminID, s.App.Config().Client.AdminID)
 	ctx = context.WithValue(ctx, config.KeyClientProfileID, s.App.Config().Client.ProfileID)
 	ctx = context.WithValue(ctx, config.KeyUserAdminID, s.App.Config().User.AdminID)
+	ctx = context.WithValue(ctx, config.KeyUserAdminEmail, s.App.Config().User.AdminEmail)
 	err := s.App.Repository().MigrateUp(ctx, s.App.Logger())
 	s.Require().NoError(err)
 }
@@ -59,10 +64,25 @@ func (s *TestSuite) TearDownTest() {
 	s.Require().NoError(err)
 }
 
-func (s *TestSuite) Must(err error) {
-	if err != nil {
-		s.T().Fatal(err)
+func (s *TestSuite) BuildQuery(query map[string]string) string {
+	q := make(url.Values)
+	for k, v := range query {
+		q.Set(k, v)
 	}
+	return q.Encode()
+}
+
+func (s *TestSuite) BuildFormData(mime string, data map[string]string) string {
+	if mime == echo.MIMEApplicationForm {
+		form := make(url.Values)
+		for k, v := range data {
+			form.Set(k, v)
+		}
+		return form.Encode()
+	}
+
+	form, _ := json.Marshal(data)
+	return string(form)
 }
 
 func (s *TestSuite) SendToServer(h echo.HandlerFunc, c echo.Context) error {
@@ -74,7 +94,7 @@ func (s *TestSuite) SendToServer(h echo.HandlerFunc, c echo.Context) error {
 }
 
 func (s *TestSuite) initConfig(ctx context.Context, cfg *config.Config) {
-	s.Must(configure.ParseEnv(ctx, cfg))
+	s.Require().NoError(configure.ParseEnv(ctx, cfg))
 	cfg.App.Environment = config.EnvTesting
 	cfg.Log.Format = logger.FormatStub
 }
@@ -93,7 +113,7 @@ func (s *TestSuite) initDatabase(ctx context.Context, cfg *config.Config) {
 			WithStartupTimeout(5*time.Second),
 		),
 	)
-	s.Must(err)
+	s.Require().NoError(err)
 
 	host, err := s.pgContainer.Host(ctx)
 	s.Require().NoError(err)
@@ -103,4 +123,27 @@ func (s *TestSuite) initDatabase(ctx context.Context, cfg *config.Config) {
 
 	cfg.DB.Host = host
 	cfg.DB.Port = port.Port()
+}
+
+func (s *TestSuite) initMailServer(ctx context.Context, cfg *config.Config) {
+	var err error
+
+	s.smtpContainer, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		Logger: &ContainerLogger{},
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "mailhog/mailhog:latest",
+			ExposedPorts: []string{"1025/tcp", "8025/tcp"},
+		},
+		Started: true,
+	})
+	s.Require().NoError(err)
+
+	host, err := s.smtpContainer.Host(ctx)
+	s.Require().NoError(err)
+
+	port, err := s.smtpContainer.MappedPort(ctx, "1025/tcp")
+	s.Require().NoError(err)
+
+	cfg.Mail.Host = host
+	cfg.Mail.Port = port.Port()
 }

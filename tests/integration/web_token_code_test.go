@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"time"
 
 	"github.com/alnovi/sso/internal/entity"
@@ -136,12 +135,7 @@ func (s *TestSuite) TestWebTokenCode() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			q := make(url.Values)
-			for k, v := range tc.query {
-				q.Set(k, v)
-			}
-
-			req := httptest.NewRequest(http.MethodPost, "/oauth/token/?"+q.Encode(), nil)
+			req := httptest.NewRequest(http.MethodPost, "/oauth/token/?"+s.BuildQuery(tc.query), nil)
 			rec := httptest.NewRecorder()
 
 			c := s.App.Server.NewContext(req, rec)

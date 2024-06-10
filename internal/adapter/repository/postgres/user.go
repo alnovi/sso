@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/alnovi/sso/internal/entity"
@@ -16,6 +17,22 @@ var userFields = []string{
 	"password",
 	"created_at",
 	"updated_at",
+}
+
+func (r *Repository) UpdateUser(ctx context.Context, user *entity.User) error {
+	user.UpdatedAt = time.Now()
+
+	_, err := r.qb.Update(tableUsers).
+		Set("image", user.Image).
+		Set("name", user.Name).
+		Set("email", user.Email).
+		Set("password", user.Password).
+		Set("updated_at", user.UpdatedAt).
+		Where(squirrel.Eq{"id": user.ID}).
+		RunWith(r.db).
+		ExecContext(ctx)
+
+	return err
 }
 
 func (r *Repository) UserByID(ctx context.Context, id string) (*entity.User, error) {

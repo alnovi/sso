@@ -10,6 +10,7 @@ const (
 	DefaultClientAdminID   = "00000000-0000-0000-0000-000000000001"
 	DefaultClientProfileID = "00000000-0000-0000-0000-000000000002"
 	DefaultUserAdminID     = "00000000-0000-0000-0000-000000000001"
+	DefaultUserAdminEmail  = "admin@example.com"
 )
 
 func EnvironmentIsTesting(ctx context.Context) bool {
@@ -38,4 +39,11 @@ func UserAdminID(ctx context.Context) string {
 		return adminID
 	}
 	return DefaultUserAdminID
+}
+
+func UserAdminEmail(ctx context.Context) string {
+	if adminEmail, ok := ctx.Value(config.KeyUserAdminEmail).(string); ok && adminEmail != "" {
+		return adminEmail
+	}
+	return DefaultUserAdminEmail
 }

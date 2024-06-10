@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -16,7 +17,7 @@ func (uc *UseCase) ValidateResponseType(ctx context.Context, inp dto.ValidateRes
 		return nil, exception.ErrClientNotFound
 	}
 
-	if inp.ResponseType == "" {
+	if !slices.Contains([]string{dto.ResponseTypeCode}, inp.ResponseType) {
 		return nil, exception.ErrUnsupportedGrantType
 	}
 
@@ -26,10 +27,6 @@ func (uc *UseCase) ValidateResponseType(ctx context.Context, inp dto.ValidateRes
 	}
 
 	if !client.IsActive {
-		return nil, exception.ErrClientNotFound
-	}
-
-	if inp.RedirectURI != "" && inp.RedirectURI != client.Callback {
 		return nil, exception.ErrClientNotFound
 	}
 
@@ -74,7 +71,7 @@ func (uc *UseCase) AccessTokenByCode(ctx context.Context, inp dto.AccessTokenByC
 		return nil, nil, err
 	}
 
-	refresh, err := uc.secure.NewRefreshToken(ctx, user, client)
+	refresh, err := uc.secure.NewRefreshToken(ctx, user, client, inp.IP, inp.Agent)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -107,7 +104,7 @@ func (uc *UseCase) AccessTokenByRefresh(ctx context.Context, inp dto.AccessToken
 		return nil, nil, err
 	}
 
-	refresh, err := uc.secure.NewRefreshToken(ctx, user, client)
+	refresh, err := uc.secure.NewRefreshToken(ctx, user, client, inp.IP, inp.Agent)
 	if err != nil {
 		return nil, nil, err
 	}

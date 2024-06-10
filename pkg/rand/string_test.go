@@ -33,3 +33,15 @@ func TestString(t *testing.T) {
 	assert.Equal(t, length, len(str))
 	assert.Equal(t, "1111111111", str)
 }
+
+func TestStringLengthPanic(t *testing.T) {
+	assert.Panics(t, func() {
+		_ = String(-1, Base64Chars)
+	})
+}
+
+func TestStringCharsPanic(t *testing.T) {
+	assert.Panics(t, func() {
+		_ = String(length, "")
+	})
+}

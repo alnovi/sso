@@ -10,6 +10,7 @@ const (
 	KeyClientAdminID
 	KeyClientProfileID
 	KeyUserAdminID
+	KeyUserAdminEmail
 )
 
 type key int
@@ -17,6 +18,7 @@ type key int
 type Config struct {
 	App    App    `env:",prefix=APP_"`
 	Log    Log    `env:",prefix=LOG_"`
+	Mail   Mail   `env:",prefix=MAIL_"`
 	DB     DB     `env:",prefix=DB_"`
 	Http   Http   `env:",prefix=HTTP_"`
 	Cors   Cors   `env:",prefix=CORS_"`
@@ -33,6 +35,15 @@ type App struct {
 type Log struct {
 	Format string `env:"FORMAT,default=json"`
 	Level  string `env:"LEVEL,default=error"`
+}
+
+type Mail struct {
+	FromName string `env:"NAME,default=SSO"`
+	FromAddr string `env:"FROM,default=sso@example.com"`
+	Host     string `env:"HOST,default=localhost"`
+	Port     string `env:"PORT,default=5432"`
+	User     string `env:"USER,default=example"`
+	Password string `env:"PASSWORD,default=example"`
 }
 
 type DB struct {
@@ -59,5 +70,6 @@ type Client struct {
 }
 
 type User struct {
-	AdminID string `env:"ADMIN_ID,default=00000000-0000-0000-0000-000000000001"`
+	AdminID    string `env:"ADMIN_ID,default=00000000-0000-0000-0000-000000000001"`
+	AdminEmail string `env:"ADMIN_EMAIL,default=admin@example.com"`
 }

@@ -36,12 +36,16 @@ func (h *TokenHandler) Token(c echo.Context) error {
 			ClientID:     c.QueryParam("client_id"),
 			ClientSecret: c.QueryParam("client_secret"),
 			CodeHash:     c.QueryParam("code"),
+			IP:           c.RealIP(),
+			Agent:        c.Request().UserAgent(),
 		})
 	case dto.GrantTypeRefresh:
 		access, refresh, err = h.uc.AccessTokenByRefresh(ctx, dto.AccessTokenByRefresh{
 			ClientID:     c.QueryParam("client_id"),
 			ClientSecret: c.QueryParam("client_secret"),
 			RefreshHash:  c.QueryParam("refresh_token"),
+			IP:           c.RealIP(),
+			Agent:        c.Request().UserAgent(),
 		})
 	default:
 		return echo.NewHTTPError(http.StatusBadRequest).SetInternal(exception.ErrUnsupportedGrantType)

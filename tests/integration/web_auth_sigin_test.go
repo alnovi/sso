@@ -3,7 +3,6 @@ package integration
 import (
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 
 	"github.com/alnovi/sso/internal/exception"
 	"github.com/labstack/echo/v4"
@@ -21,7 +20,6 @@ func (s *TestSuite) TestWebAuthSignIn() {
 			query: map[string]string{
 				"response_type": "code",
 				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "",
 			},
 			expCode: http.StatusOK,
 			expErr:  nil,
@@ -30,7 +28,6 @@ func (s *TestSuite) TestWebAuthSignIn() {
 			query: map[string]string{
 				"response_type": "code",
 				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/profile/callback",
 			},
 			expCode: http.StatusOK,
 			expErr:  nil,
@@ -39,7 +36,6 @@ func (s *TestSuite) TestWebAuthSignIn() {
 			query: map[string]string{
 				"response_type": "code",
 				"client_id":     "",
-				"redirect_uri":  "",
 			},
 			expCode: http.StatusBadRequest,
 			expErr:  echo.NewHTTPError(http.StatusBadRequest).SetInternal(exception.ErrClientNotFound),
@@ -48,30 +44,15 @@ func (s *TestSuite) TestWebAuthSignIn() {
 			query: map[string]string{
 				"response_type": "",
 				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "",
 			},
 			expCode: http.StatusBadRequest,
 			expErr:  echo.NewHTTPError(http.StatusBadRequest).SetInternal(exception.ErrUnsupportedGrantType),
-		}, {
-			name: "Invalid redirect uri",
-			query: map[string]string{
-				"response_type": "code",
-				"client_id":     s.App.Provider.Config().Client.ProfileID,
-				"redirect_uri":  "/callback/invalid",
-			},
-			expCode: http.StatusBadRequest,
-			expErr:  echo.NewHTTPError(http.StatusBadRequest).SetInternal(exception.ErrClientNotFound),
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			q := make(url.Values)
-			for k, v := range tc.query {
-				q.Set(k, v)
-			}
-
-			req := httptest.NewRequest(http.MethodGet, "/?"+q.Encode(), nil)
+			req := httptest.NewRequest(http.MethodGet, "/?"+s.BuildQuery(tc.query), nil)
 			rec := httptest.NewRecorder()
 
 			c := s.App.Server.NewContext(req, rec)

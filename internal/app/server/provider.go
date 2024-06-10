@@ -3,9 +3,12 @@ package server
 import (
 	"context"
 	"log/slog"
+	"strconv"
 
+	mail "github.com/alnovi/sso/internal/adapter/notify/email"
 	"github.com/alnovi/sso/internal/adapter/repository/postgres"
 	"github.com/alnovi/sso/internal/config"
+	"github.com/alnovi/sso/internal/service/notify"
 	"github.com/alnovi/sso/internal/service/secure"
 	"github.com/alnovi/sso/internal/transport/http/handler/web"
 	"github.com/alnovi/sso/internal/usecase"
@@ -17,7 +20,9 @@ type Provider struct {
 	cfg        *config.Config
 	logger     *slog.Logger
 	closer     *closer.Closer
+	mail       *mail.Mail
 	repository *postgres.Repository
+	notify     *notify.Notify
 	secure     *secure.Secure
 	useCase    *usecase.UseCase
 	webAuth    *web.AuthHandler
@@ -47,6 +52,30 @@ func (p *Provider) Closer() *closer.Closer {
 	return p.closer
 }
 
+func (p *Provider) Mail() *mail.Mail {
+	var err error
+	var port int
+	if p.mail == nil {
+		if port, err = strconv.Atoi(p.Config().Mail.Port); err != nil {
+			panic(err)
+		}
+		p.mail, err = mail.New(
+			mail.From{
+				Name:  p.Config().Mail.FromName,
+				Email: p.Config().Mail.FromAddr,
+			},
+			p.Config().Mail.User,
+			p.Config().Mail.Password,
+			p.Config().Mail.Host,
+			port,
+		)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return p.mail
+}
+
 func (p *Provider) Repository() *postgres.Repository {
 	var err error
 	if p.repository == nil {
@@ -60,6 +89,7 @@ func (p *Provider) Repository() *postgres.Repository {
 		ctx = context.WithValue(ctx, config.KeyClientAdminID, p.Config().Client.AdminID)
 		ctx = context.WithValue(ctx, config.KeyClientProfileID, p.Config().Client.ProfileID)
 		ctx = context.WithValue(ctx, config.KeyUserAdminID, p.Config().User.AdminID)
+		ctx = context.WithValue(ctx, config.KeyUserAdminEmail, p.Config().User.AdminEmail)
 
 		if err = p.repository.MigrateUp(ctx, p.Logger()); err != nil {
 			panic(err)
@@ -73,7 +103,11 @@ func (p *Provider) Repository() *postgres.Repository {
 
 func (p *Provider) UseCase() *usecase.UseCase {
 	if p.useCase == nil {
-		p.useCase = usecase.New(p.Repository(), p.Secure())
+		p.useCase = usecase.New(
+			p.Repository(),
+			p.Notify(),
+			p.Secure(),
+		)
 	}
 	return p.useCase
 }
