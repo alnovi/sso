@@ -35,7 +35,6 @@ func New(cfg *config.Config) *App {
 		app.WebAuth(),
 		app.WebToken(),
 	}, []echo.MiddlewareFunc{
-		middleware.RequestLogger(app.Logger()),
 		middleware.TrailingSlash(),
 		middleware.Cors(app.Config().Cors.AllowOrigin),
 	}...)
