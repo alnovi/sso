@@ -10,26 +10,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	h   = NewStubHandler(os.Stdout, &slog.HandlerOptions{})
-	ctx = context.Background()
-	rec = slog.Record{Time: time.Now(), Message: "test message", Level: slog.LevelDebug}
-)
-
 func TestStubHandler_Handle(t *testing.T) {
-	assert.Nil(t, h.Handle(ctx, rec))
+	h := NewStubHandler(os.Stdout, &slog.HandlerOptions{})
+	rec := slog.Record{Time: time.Now(), Message: "test message", Level: slog.LevelDebug}
+	assert.Nil(t, h.Handle(context.Background(), rec))
 }
 
 func TestStubHandler_WithAttrs(t *testing.T) {
+	h := NewStubHandler(os.Stdout, &slog.HandlerOptions{})
 	attr := []slog.Attr{slog.String("msg", "text")}
 	assert.Equal(t, h.WithAttrs(attr), h)
 }
 
 func TestStubHandler_WithGroup(t *testing.T) {
 	g := "group name"
+	h := NewStubHandler(os.Stdout, &slog.HandlerOptions{})
 	assert.Equal(t, h.WithGroup(g), h)
 }
 
 func TestStubHandler_Enabled(t *testing.T) {
-	assert.False(t, h.Enabled(ctx, slog.LevelDebug))
+	h := NewStubHandler(os.Stdout, &slog.HandlerOptions{})
+	assert.False(t, h.Enabled(context.Background(), slog.LevelDebug))
 }
