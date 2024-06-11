@@ -8,10 +8,12 @@ import (
 
 	"github.com/alnovi/sso/internal/config"
 	"github.com/alnovi/sso/internal/transport/http/handler"
+	"github.com/alnovi/sso/internal/transport/http/middleware"
 	"github.com/alnovi/sso/internal/transport/http/render"
 	"github.com/alnovi/sso/pkg/server"
 	"github.com/alnovi/sso/pkg/validator"
 	"github.com/alnovi/sso/web"
+	"github.com/labstack/echo/v4"
 )
 
 type App struct {
@@ -32,7 +34,11 @@ func New(cfg *config.Config) *App {
 	app.Server.ApplyController("", []server.Controller{
 		app.WebAuth(),
 		app.WebToken(),
-	})
+	}, []echo.MiddlewareFunc{
+		middleware.RequestLogger(app.Logger()),
+		middleware.TrailingSlash(),
+		middleware.Cors(app.Config().Cors.AllowOrigin),
+	}...)
 
 	app.Server.ApplyController("/api", []server.Controller{})
 

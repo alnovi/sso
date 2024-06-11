@@ -14,13 +14,6 @@ type Render struct {
 	templates *template.Template
 }
 
-func NewFromPath(path string) *Render {
-	path = strings.Trim(path, "/")
-	path = fmt.Sprintf("%s/*", path)
-
-	return &Render{templates: template.Must(template.ParseGlob(path))}
-}
-
 func NewFromFS(fs fs.FS, dir string) *Render {
 	dir = strings.Trim(dir, "/")
 	pattern := fmt.Sprintf("%s/*", dir)
