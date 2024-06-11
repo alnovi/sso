@@ -17,6 +17,10 @@ type User struct {
 }
 
 func (e *User) MaskEmail() string {
+	if e.Email == "" {
+		return ""
+	}
+
 	atPos := strings.LastIndex(e.Email, "@")
 	domain := e.Email[atPos+1:]
 	name := e.Email[:atPos]
