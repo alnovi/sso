@@ -24,8 +24,6 @@ type App struct {
 func New(cfg *config.Config) *App {
 	app := &App{Provider: NewProvider(cfg)}
 	app.Server = server.New(
-		server.WithLogger(app.Logger()),
-		server.WithCors(app.Config().Cors.AllowOrigin),
 		server.WithRender(render.NewFromFS(web.StaticFS, "dist/html")),
 		server.WithValidate(validator.NewEchoValidator()),
 		server.WithErrorHandle(handler.NewErrorHandler().Handle),
@@ -36,6 +34,7 @@ func New(cfg *config.Config) *App {
 		app.WebToken(),
 	}, []echo.MiddlewareFunc{
 		middleware.TrailingSlash(),
+		middleware.RequestLogger(app.Logger()),
 		middleware.Cors(app.Config().Cors.AllowOrigin),
 	}...)
 
