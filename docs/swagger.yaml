@@ -1,0 +1,12 @@
+info:
+  contact:
+    name: Alnovi
+    url: https://github.com/alnovi/sso
+  description: Single sign-on (сервис единого входа)
+  license:
+    name: MIT
+    url: https://github.com/alnovi/sso/LICENSE.md
+  title: SSO
+  version: 0.0.0
+paths: {}
+swagger: "2.0"
