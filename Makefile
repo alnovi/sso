@@ -38,7 +38,7 @@ lint:
 ## test: запуск всех тестов
 .PHONY: test
 test:
-	go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./cmd/... ./internal/... ./pkg/... ./tests/...
+	go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./internal/... ./pkg/... ./tests/...
 	go tool cover -html=./coverage.out
 	rm ./coverage.out
 
@@ -55,4 +55,4 @@ test-unit:
 test-integration:
 	go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./tests/...
 	go tool cover -html=./coverage.out
-	#rm ./coverage.out
+	rm ./coverage.out

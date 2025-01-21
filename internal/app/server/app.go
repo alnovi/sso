@@ -15,6 +15,7 @@ import (
 	"github.com/alnovi/sso/docs"
 	"github.com/alnovi/sso/internal/provider"
 	"github.com/alnovi/sso/internal/transaport/http/controller"
+	"github.com/alnovi/sso/internal/transaport/http/controller/oauth"
 	"github.com/alnovi/sso/internal/transaport/http/middleware"
 	"github.com/alnovi/sso/pkg/server"
 )
@@ -28,7 +29,7 @@ type App struct {
 func NewApp(cfg *config.Config) *App {
 	_ = os.Setenv("TZ", "UTC")
 
-	app := &App{Provider: provider.NewProvider(cfg)}
+	app := &App{Provider: provider.New(cfg)}
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -75,7 +76,13 @@ func (app *App) Start(ctx context.Context) {
 }
 
 func (app *App) initControllers() {
-	app.Controllers = []server.HttpController{}
+	app.Controllers = []server.HttpController{
+		server.NewWrap("oauth/v1", []server.HttpController{
+			oauth.NewAuthorizeController(app.Provider.OAuth(), app.Provider.Cookie()),
+			oauth.NewProfileController(app.Provider.OAuth(), app.Provider.Cookie()),
+			oauth.NewPasswordController(app.Provider.OAuth()),
+		}...),
+	}
 }
 
 func (app *App) initHttpServer() {

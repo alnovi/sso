@@ -6,6 +6,12 @@ import (
 	"log/slog"
 
 	"github.com/alnovi/sso/config"
+	pgrepo "github.com/alnovi/sso/internal/adapter/repository/postgres"
+	"github.com/alnovi/sso/internal/service/cookie"
+	"github.com/alnovi/sso/internal/service/jwt"
+	"github.com/alnovi/sso/internal/service/oauth"
+	"github.com/alnovi/sso/internal/service/sessions"
+	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/pkg/client/postgres"
 	"github.com/alnovi/sso/pkg/closer"
 	"github.com/alnovi/sso/pkg/configure"
@@ -17,15 +23,21 @@ import (
 )
 
 type Provider struct {
-	config    *config.Config
-	logger    *slog.Logger
-	closer    *closer.Closer
-	validator *validator.EchoValidator
-	db        *postgres.Client
-	tm        *postgres.Transaction
+	config      *config.Config
+	logger      *slog.Logger
+	closer      *closer.Closer
+	validator   *validator.EchoValidator
+	dbPool      *postgres.Client
+	transaction *postgres.Transaction
+	repository  *pgrepo.Repository
+	cookie      *cookie.Cookie
+	oauth       *oauth.OAuth
+	jwt         *jwt.JWT
+	session     *sessions.Session
+	token       *token.Token
 }
 
-func NewProvider(cfg *config.Config) *Provider {
+func New(cfg *config.Config) *Provider {
 	return &Provider{config: cfg}
 }
 
@@ -64,35 +76,42 @@ func (p *Provider) Validator() *validator.EchoValidator {
 }
 
 func (p *Provider) DB() *postgres.Client {
-	if p.db == nil {
+	if p.dbPool == nil {
 		var err error
 
 		cfg := p.Config().Database
 		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.Database)
 
-		p.db, err = postgres.NewClient(dsn)
+		p.dbPool, err = postgres.NewClient(dsn)
 		if err != nil {
 			utils.Must(fmt.Errorf("failed to connect to database: %w", err))
 		}
 
-		if err = p.db.Ping(context.Background()); err != nil {
+		if err = p.dbPool.Ping(context.Background()); err != nil {
 			utils.Must(fmt.Errorf("failed to ping database: %w", err))
 		}
 
-		p.db.SetLogger(p.LoggerModule("sql"))
+		p.dbPool.SetLogger(p.LoggerModule("sql"))
 
 		p.Closer().Add(func(_ context.Context) error {
-			return p.db.Close()
+			return p.dbPool.Close()
 		})
 	}
-	return p.db
+	return p.dbPool
 }
 
 func (p *Provider) Transaction() *postgres.Transaction {
-	if p.tm == nil {
-		p.tm = postgres.NewTransaction(p.DB().DB())
+	if p.transaction == nil {
+		p.transaction = postgres.NewTransaction(p.DB().DB())
 	}
-	return p.tm
+	return p.transaction
+}
+
+func (p *Provider) Repository() *pgrepo.Repository {
+	if p.repository == nil {
+		p.repository = pgrepo.New(p.DB())
+	}
+	return p.repository
 }
 
 func (p *Provider) MigrationUp(ctx context.Context) {
@@ -119,4 +138,41 @@ func (p *Provider) MigrationDown(ctx context.Context) {
 
 	err := migrator.PostgresDownFromPath(ctx, db, ".", log)
 	utils.Must(err)
+}
+
+func (p *Provider) Cookie() *cookie.Cookie {
+	if p.cookie == nil {
+		p.cookie = cookie.New(p.Config().IsProduction())
+	}
+	return p.cookie
+}
+
+func (p *Provider) OAuth() *oauth.OAuth {
+	if p.oauth == nil {
+		p.oauth = oauth.New(p.Repository(), p.Transaction(), p.Token(), p.Session())
+	}
+	return p.oauth
+}
+
+func (p *Provider) JWT() *jwt.JWT {
+	if p.jwt == nil {
+		var err error
+		p.jwt, err = jwt.New([]byte(p.Config().Jwt.PrivateKey), []byte(p.Config().Jwt.PublicKey))
+		utils.Must(err)
+	}
+	return p.jwt
+}
+
+func (p *Provider) Session() *sessions.Session {
+	if p.session == nil {
+		p.session = sessions.New(p.Repository())
+	}
+	return p.session
+}
+
+func (p *Provider) Token() *token.Token {
+	if p.token == nil {
+		p.token = token.New(p.Repository(), p.JWT())
+	}
+	return p.token
 }
