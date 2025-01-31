@@ -6,8 +6,10 @@ import (
 	"log/slog"
 
 	"github.com/alnovi/sso/config"
+	"github.com/alnovi/sso/internal/adapter/mailing/gomail"
 	pgrepo "github.com/alnovi/sso/internal/adapter/repository/postgres"
 	"github.com/alnovi/sso/internal/service/cookie"
+	"github.com/alnovi/sso/internal/service/crypt"
 	"github.com/alnovi/sso/internal/service/jwt"
 	"github.com/alnovi/sso/internal/service/oauth"
 	"github.com/alnovi/sso/internal/service/sessions"
@@ -30,7 +32,9 @@ type Provider struct {
 	dbPool      *pgs.Client
 	transaction *pgs.Transaction
 	repository  *pgrepo.Repository
+	mailing     *gomail.Mailing
 	cookie      *cookie.Cookie
+	crypt       *crypt.Crypt
 	oauth       *oauth.OAuth
 	jwt         *jwt.JWT
 	session     *sessions.Session
@@ -114,6 +118,29 @@ func (p *Provider) Repository() *pgrepo.Repository {
 	return p.repository
 }
 
+func (p *Provider) Mailing() *gomail.Mailing {
+	if p.mailing == nil {
+		var err error
+
+		p.mailing, err = gomail.New(
+			p.Config().Mail.Host,
+			p.Config().Mail.Port,
+			gomail.WithAppHost(p.Config().App.Host),
+			gomail.WithFrom(p.Config().Mail.From, p.Config().Mail.Username),
+			gomail.WithAuthUsername(p.Config().Mail.Username),
+			gomail.WithAuthPassword(p.Config().Mail.Password),
+		)
+
+		utils.Must(err)
+		utils.Must(p.mailing.Ping(context.Background()))
+
+		p.Closer().Add(func(_ context.Context) error {
+			return p.mailing.Close()
+		})
+	}
+	return p.mailing
+}
+
 func (p *Provider) MigrationUp(ctx context.Context) {
 	ctx = context.WithValue(ctx, migrator.ConfigKey, p.Config())
 	log := migrator.NewGooseLogger(p.LoggerModule("migrate"))
@@ -147,9 +174,18 @@ func (p *Provider) Cookie() *cookie.Cookie {
 	return p.cookie
 }
 
+func (p *Provider) Crypt() *crypt.Crypt {
+	if p.crypt == nil {
+		var err error
+		p.crypt, err = crypt.New(p.Config().App.Secret)
+		utils.Must(err)
+	}
+	return p.crypt
+}
+
 func (p *Provider) OAuth() *oauth.OAuth {
 	if p.oauth == nil {
-		p.oauth = oauth.New(p.Repository(), p.Transaction(), p.Token(), p.Session())
+		p.oauth = oauth.New(p.Repository(), p.Transaction(), p.Mailing(), p.Token(), p.Session(), p.Crypt())
 	}
 	return p.oauth
 }

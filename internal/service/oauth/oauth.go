@@ -8,8 +8,10 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/alnovi/sso/internal/adapter/mailing"
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/service/crypt"
 	"github.com/alnovi/sso/internal/service/sessions"
 	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/pkg/utils"
@@ -33,12 +35,14 @@ var (
 type OAuth struct {
 	repo    repository.Repository
 	tm      repository.Transaction
+	mailing mailing.Mailing
 	token   *token.Token
 	session *sessions.Session
+	crypt   *crypt.Crypt
 }
 
-func New(r repository.Repository, tm repository.Transaction, t *token.Token, s *sessions.Session) *OAuth {
-	return &OAuth{repo: r, tm: tm, token: t, session: s}
+func New(r repository.Repository, tm repository.Transaction, m mailing.Mailing, t *token.Token, s *sessions.Session, c *crypt.Crypt) *OAuth {
+	return &OAuth{repo: r, tm: tm, mailing: m, token: t, session: s, crypt: c}
 }
 
 func (s *OAuth) Client(ctx context.Context, id string, secret *string) (*entity.Client, error) {
@@ -242,6 +246,73 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 
 func (s *OAuth) RemoveSession(ctx context.Context, sessionId string) error {
 	return s.session.Delete(ctx, sessionId)
+}
+
+func (s *OAuth) ForgotPassword(ctx context.Context, inp InputForgotPassword) error {
+	client, err := s.Client(ctx, inp.ClientId, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.RedirectURL(client, inp.RedirectUri)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.repo.UserByEmail(ctx, inp.Login)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserNotFound, err)
+	}
+
+	forgotToken, err := s.token.ForgotPasswordToken(ctx, client.Id, user.Id, inp.Query)
+	if err != nil {
+		return err
+	}
+
+	return s.mailing.ForgotPassword(ctx, user, forgotToken)
+}
+
+func (s *OAuth) ResetPassword(ctx context.Context, inp InputResetPassword) (*url.URL, error) {
+	var authUrl *url.URL
+	var err error
+
+	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
+		var forgotToken *entity.Token
+		var user *entity.User
+
+		forgotToken, err = s.repo.TokenByClassHash(ctx, entity.TokenClassForgot, inp.Hash)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrTokenNotFound, err)
+		}
+
+		if err = s.repo.TokenDelete(ctx, forgotToken.Id); err != nil {
+			return fmt.Errorf("fail delete token: %s", err)
+		}
+
+		user, err = s.repo.UserById(ctx, *forgotToken.UserId)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUserNotFound, err)
+		}
+
+		user.Password, err = s.crypt.HashPassword(inp.Password)
+		if err != nil {
+			return fmt.Errorf("fail hash password: %s", err)
+		}
+
+		err = s.repo.UserUpdate(ctx, user)
+		if err != nil {
+			return fmt.Errorf("fail change user password: %s", err)
+		}
+
+		authUrl, err = url.Parse(fmt.Sprintf("/v1/oauth/authorize?%s", forgotToken.Payload.Query()))
+		if err != nil {
+			return fmt.Errorf("can't parse query in token forgot [token_id=%s]: %s", forgotToken.Id, err)
+		}
+
+		return nil
+	})
+
+	return authUrl, err
 }
 
 func (s *OAuth) userAttempt(ctx context.Context, email, password string) (*entity.User, error) {

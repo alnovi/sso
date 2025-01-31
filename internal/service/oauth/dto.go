@@ -21,3 +21,15 @@ type InputTokenByRefresh struct {
 	ClientSecret string
 	Refresh      string
 }
+
+type InputForgotPassword struct {
+	ClientId    string
+	RedirectUri string
+	Query       string
+	Login       string
+}
+
+type InputResetPassword struct {
+	Hash     string
+	Password string
+}

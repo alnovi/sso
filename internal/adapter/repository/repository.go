@@ -18,6 +18,8 @@ type Transaction interface {
 type Repository interface {
 	ClientById(ctx context.Context, id string) (*entity.Client, error)
 
+	UserUpdate(ctx context.Context, user *entity.User) error
+	UserById(ctx context.Context, id string) (*entity.User, error)
 	UserByEmail(ctx context.Context, email string) (*entity.User, error)
 
 	RoleByClientAndUser(ctx context.Context, clientId, userId string) (*entity.Role, error)
