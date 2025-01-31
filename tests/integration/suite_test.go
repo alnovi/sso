@@ -30,6 +30,7 @@ import (
 const (
 	TestIP            = "127.0.0.1"
 	TestAgent         = "suite-test-agent"
+	TestSecret        = "secret"
 	ImagePostgres     = "postgres:15.3-alpine"
 	ImageMailSMTP     = "mailhog/mailhog:latest"
 	LoggerFormat      = logger.FormatJson
@@ -100,20 +101,20 @@ func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
 	cfg.Database.Database = "sso"
 
 	cfg.Mail.Username = "test@example.com"
-	cfg.Mail.Password = "secret"
+	cfg.Mail.Password = TestSecret
 
-	cfg.Jwt.PrivateKey = "secret"
-	cfg.Jwt.PublicKey = "secret"
+	cfg.Jwt.PrivateKey = TestSecret
+	cfg.Jwt.PublicKey = TestSecret
 
 	cfg.TestClient.Id = uuid.NewString()
 	cfg.TestClient.Name = "Test client"
-	cfg.TestClient.Secret = "secret"
+	cfg.TestClient.Secret = TestSecret
 	cfg.TestClient.Host = "https://127.0.0.1"
 
 	cfg.TestUser.Id = uuid.NewString()
 	cfg.TestUser.Name = "Test user"
 	cfg.TestUser.Email = "test@example.com"
-	cfg.TestUser.Password = "secret"
+	cfg.TestUser.Password = TestSecret
 
 	s.Require().NoError(configure.ParseEnv(cfg))
 }

@@ -20,12 +20,14 @@ type Repository interface {
 
 	UserByEmail(ctx context.Context, email string) (*entity.User, error)
 
+	RoleByClientAndUser(ctx context.Context, clientId, userId string) (*entity.Role, error)
+
 	SessionCreate(ctx context.Context, session *entity.Session) error
 	SessionDelete(ctx context.Context, id string) error
 	SessionById(ctx context.Context, id string) (*entity.Session, error)
 
 	TokenCreate(ctx context.Context, token *entity.Token) error
 	TokenDelete(ctx context.Context, id string) error
-	TokenById(ctx context.Context, id string, fu bool) (*entity.Token, error)
-	TokenByClassHash(ctx context.Context, class, hash string, fu bool) (*entity.Token, error)
+	TokenById(ctx context.Context, id string) (*entity.Token, error)
+	TokenByClassHash(ctx context.Context, class, hash string) (*entity.Token, error)
 }

@@ -12,9 +12,9 @@ import (
 	"github.com/alnovi/sso/internal/service/oauth"
 	"github.com/alnovi/sso/internal/service/sessions"
 	"github.com/alnovi/sso/internal/service/token"
-	"github.com/alnovi/sso/pkg/client/postgres"
 	"github.com/alnovi/sso/pkg/closer"
 	"github.com/alnovi/sso/pkg/configure"
+	"github.com/alnovi/sso/pkg/db/pgs"
 	"github.com/alnovi/sso/pkg/logger"
 	"github.com/alnovi/sso/pkg/migrator"
 	"github.com/alnovi/sso/pkg/utils"
@@ -27,8 +27,8 @@ type Provider struct {
 	logger      *slog.Logger
 	closer      *closer.Closer
 	validator   *validator.EchoValidator
-	dbPool      *postgres.Client
-	transaction *postgres.Transaction
+	dbPool      *pgs.Client
+	transaction *pgs.Transaction
 	repository  *pgrepo.Repository
 	cookie      *cookie.Cookie
 	oauth       *oauth.OAuth
@@ -75,14 +75,14 @@ func (p *Provider) Validator() *validator.EchoValidator {
 	return p.validator
 }
 
-func (p *Provider) DB() *postgres.Client {
+func (p *Provider) DB() *pgs.Client {
 	if p.dbPool == nil {
 		var err error
 
 		cfg := p.Config().Database
 		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.Database)
 
-		p.dbPool, err = postgres.NewClient(dsn)
+		p.dbPool, err = pgs.NewClient(dsn)
 		if err != nil {
 			utils.Must(fmt.Errorf("failed to connect to database: %w", err))
 		}
@@ -100,9 +100,9 @@ func (p *Provider) DB() *postgres.Client {
 	return p.dbPool
 }
 
-func (p *Provider) Transaction() *postgres.Transaction {
+func (p *Provider) Transaction() *pgs.Transaction {
 	if p.transaction == nil {
-		p.transaction = postgres.NewTransaction(p.DB().DB())
+		p.transaction = pgs.NewTransaction(p.DB().DB())
 	}
 	return p.transaction
 }

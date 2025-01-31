@@ -9,3 +9,15 @@ type InputAuthByCode struct {
 	IP          string
 	Agent       string
 }
+
+type InputTokenByCode struct {
+	ClientId     string
+	ClientSecret string
+	Code         string
+}
+
+type InputTokenByRefresh struct {
+	ClientId     string
+	ClientSecret string
+	Refresh      string
+}

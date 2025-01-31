@@ -1,6 +1,6 @@
 module github.com/alnovi/sso
 
-go 1.23
+go 1.23.5
 
 require (
 	github.com/Masterminds/squirrel v1.5.4

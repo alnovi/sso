@@ -1,4 +1,4 @@
-package postgres
+package pgs
 
 import (
 	"context"
@@ -13,8 +13,6 @@ import (
 )
 
 type key string
-
-type TransactionFn func(ctx context.Context) error
 
 type Client struct {
 	db  *pgxpool.Pool

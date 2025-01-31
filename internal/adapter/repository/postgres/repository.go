@@ -3,14 +3,14 @@ package postgres
 import (
 	"github.com/Masterminds/squirrel"
 
-	"github.com/alnovi/sso/pkg/client/postgres"
+	"github.com/alnovi/sso/pkg/db/pgs"
 )
 
 type Repository struct {
-	db *postgres.Client
+	db *pgs.Client
 	qb squirrel.StatementBuilderType
 }
 
-func New(db *postgres.Client) *Repository {
+func New(db *pgs.Client) *Repository {
 	return &Repository{db: db, qb: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)}
 }

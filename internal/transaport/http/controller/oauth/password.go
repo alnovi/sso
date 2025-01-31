@@ -1,6 +1,8 @@
 package oauth
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 
 	"github.com/alnovi/sso/internal/service/oauth"
@@ -16,11 +18,19 @@ func NewPasswordController(oauth *oauth.OAuth) *PasswordController {
 	return &PasswordController{oauth: oauth}
 }
 
-func (c *PasswordController) ForgotPassword(ctx echo.Context) error {
+func (c *PasswordController) ForgotPassword(e echo.Context) error {
+	ctx := e.Request().Context()
+
+	if _, err := c.oauth.ResponseType(e.QueryParam("response_type")); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	_ = ctx
+
 	return nil
 }
 
-func (c *PasswordController) ResetPassword(ctx echo.Context) error {
+func (c *PasswordController) ResetPassword(e echo.Context) error {
 	return nil
 }
 

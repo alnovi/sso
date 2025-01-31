@@ -1,3 +1,35 @@
+definitions:
+  request.Authorize:
+    properties:
+      login:
+        example: name@example.com
+        minLength: 5
+        type: string
+      password:
+        example: qwerty
+        maxLength: 24
+        minLength: 5
+        type: string
+      remember:
+        type: boolean
+    required:
+    - login
+    - password
+    type: object
+  response.AccessToken:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  response.URL:
+    properties:
+      url:
+        type: string
+    type: object
 info:
   contact:
     name: Alnovi
@@ -8,5 +40,144 @@ info:
     url: https://github.com/alnovi/sso/LICENSE.md
   title: SSO
   version: 0.0.0
-paths: {}
+paths:
+  /oauth/v1/authorize:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя
+      operationId: Authorize
+      parameters:
+      - description: Response type
+        example: code
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: Client ID
+        example: app_id
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Redirect URI
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      - description: State
+        in: query
+        name: state
+        type: string
+      - description: Логин и пароль пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.Authorize'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ссылка для перехода
+          schema:
+            $ref: '#/definitions/response.URL'
+        "302":
+          description: Found
+      summary: Аутентификация пользователя
+      tags:
+      - OAuth
+  /oauth/v1/client:
+    get:
+      consumes:
+      - application/json
+      description: Проверка параметров клиента и информация о нем
+      operationId: CheckClient
+      parameters:
+      - description: Response type
+        example: code
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: Client ID
+        example: app_id
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Redirect URI
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Информация о клиенте
+      tags:
+      - OAuth
+  /oauth/v1/logout:
+    post:
+      consumes:
+      - application/json
+      description: Удаление сессии пользователя
+      operationId: Logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Выход
+      tags:
+      - OAuth
+  /v1/oauth/token:
+    post:
+      consumes:
+      - application/json
+      description: Получение токена доступа по code или refresh токену
+      operationId: Token
+      parameters:
+      - description: Grant type
+        enum:
+        - authorization_code
+        - refresh_token
+        in: query
+        name: grant_type
+        required: true
+        type: string
+      - description: Client ID
+        example: app_id
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Client secret
+        example: secret
+        in: query
+        name: client_secret
+        required: true
+        type: string
+      - description: Code token
+        example: secret
+        in: query
+        name: code
+        type: string
+      - description: Refresh token
+        example: secret
+        in: query
+        name: refresh_token
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Токен доступа
+          schema:
+            $ref: '#/definitions/response.AccessToken'
+      summary: Токен доступа
+      tags:
+      - OAuth
 swagger: "2.0"

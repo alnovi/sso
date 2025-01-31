@@ -95,7 +95,7 @@ func (r *Repository) TokenDelete(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *Repository) TokenById(ctx context.Context, id string, fu bool) (*entity.Token, error) {
+func (r *Repository) TokenById(ctx context.Context, id string) (*entity.Token, error) {
 	token := new(entity.Token)
 
 	err := uuid.Validate(id)
@@ -106,10 +106,6 @@ func (r *Repository) TokenById(ctx context.Context, id string, fu bool) (*entity
 	query := r.qb.Select(tokenFields...).
 		From(TokenTable).
 		Where(sq.Eq{"id": id})
-
-	if fu {
-		query = query.Suffix("FOR UPDATE")
-	}
 
 	q, args, err := query.ToSql()
 	if err != nil {
@@ -124,16 +120,12 @@ func (r *Repository) TokenById(ctx context.Context, id string, fu bool) (*entity
 	return token, err
 }
 
-func (r *Repository) TokenByClassHash(ctx context.Context, class, hash string, fu bool) (*entity.Token, error) {
+func (r *Repository) TokenByClassHash(ctx context.Context, class, hash string) (*entity.Token, error) {
 	token := entity.NewToken()
 
 	query := r.qb.Select(tokenFields...).
 		From(TokenTable).
 		Where(sq.Eq{"class": class, "hash": hash})
-
-	if fu {
-		query = query.Suffix("FOR UPDATE")
-	}
 
 	q, args, err := query.ToSql()
 	if err != nil {

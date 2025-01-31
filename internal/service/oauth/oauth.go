@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
+	"strings"
 
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
@@ -24,6 +26,7 @@ var (
 	ErrTokenNotFound       = errors.New("token not found")
 	ErrUserNotFound        = errors.New("user not found")
 	ErrUserPasswordInvalid = errors.New("user password invalid")
+	ErrResponseTypeInvalid = errors.New("response type invalid")
 	ErrRedirectUriInvalid  = errors.New("redirect uri invalid")
 )
 
@@ -53,6 +56,18 @@ func (s *OAuth) Client(ctx context.Context, id string, secret *string) (*entity.
 	}
 
 	return client, nil
+}
+
+func (s *OAuth) ResponseType(rt string) (string, error) {
+	rt = strings.ToLower(rt)
+
+	allowedTypes := []string{ResponseTypeCode}
+
+	if !slices.Contains(allowedTypes, rt) {
+		return rt, ErrResponseTypeInvalid
+	}
+
+	return rt, nil
 }
 
 func (s *OAuth) RedirectURL(client *entity.Client, uri string) (*url.URL, error) {
@@ -121,6 +136,108 @@ func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthByCode) (*url.
 	redirectUri.RawQuery = query.Encode()
 
 	return redirectUri, code, nil
+}
+
+func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.Token, *entity.Token, error) {
+	var accessToken *entity.Token
+	var refreshToken *entity.Token
+
+	client, err := s.Client(ctx, inp.ClientId, &inp.ClientSecret)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
+		var code *entity.Token
+		var role *entity.Role
+
+		code, err = s.repo.TokenByClassHash(ctx, entity.TokenClassCode, inp.Code)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrTokenNotFound, err)
+		}
+
+		if !code.CheckClient(client.Id) {
+			return fmt.Errorf("%w: client is not match", ErrTokenNotFound)
+		}
+
+		if !code.IsActive() {
+			return fmt.Errorf("%w: code is not active", ErrTokenNotFound)
+		}
+
+		if err = s.repo.TokenDelete(ctx, code.Id); err != nil {
+			return fmt.Errorf("can't delete code-token: %s", err)
+		}
+
+		role, err = s.repo.RoleByClientAndUser(ctx, *code.ClientId, *code.UserId)
+		if err != nil {
+			return fmt.Errorf("role not found: %s", err)
+		}
+
+		accessToken, err = s.token.AccessToken(ctx, *code.SessionId, client.Id, *code.UserId, role.Role)
+		if err != nil {
+			return err
+		}
+
+		refreshToken, err = s.token.RefreshToken(ctx, *code.SessionId, client.Id, *code.UserId, accessToken.Expiration)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return accessToken, refreshToken, err
+}
+
+func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*entity.Token, *entity.Token, error) {
+	var accessToken *entity.Token
+	var refreshToken *entity.Token
+
+	client, err := s.Client(ctx, inp.ClientId, &inp.ClientSecret)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
+		var refresh *entity.Token
+		var role *entity.Role
+
+		refresh, err = s.repo.TokenByClassHash(ctx, entity.TokenClassRefresh, inp.Refresh)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrTokenNotFound, err)
+		}
+
+		if !refresh.CheckClient(client.Id) {
+			return fmt.Errorf("%w: client is not match", ErrTokenNotFound)
+		}
+
+		if !refresh.IsActive() {
+			return fmt.Errorf("%w: refresh is not active", ErrTokenNotFound)
+		}
+
+		if err = s.repo.TokenDelete(ctx, refresh.Id); err != nil {
+			return fmt.Errorf("can't delete refresh-token: %s", err)
+		}
+
+		role, err = s.repo.RoleByClientAndUser(ctx, *refresh.ClientId, *refresh.UserId)
+		if err != nil {
+			return fmt.Errorf("role not found: %s", err)
+		}
+
+		accessToken, err = s.token.AccessToken(ctx, *refresh.SessionId, client.Id, *refresh.UserId, role.Role)
+		if err != nil {
+			return err
+		}
+
+		refreshToken, err = s.token.RefreshToken(ctx, *refresh.SessionId, client.Id, *refresh.UserId, accessToken.Expiration)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return accessToken, refreshToken, err
 }
 
 func (s *OAuth) RemoveSession(ctx context.Context, sessionId string) error {

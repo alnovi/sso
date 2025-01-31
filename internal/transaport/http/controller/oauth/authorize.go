@@ -38,11 +38,13 @@ func NewAuthorizeController(oauth *oauth.OAuth, cookie *cookie.Cookie) *Authoriz
 // @Success 200
 // @Router      /oauth/v1/client [get]
 func (c *AuthorizeController) Client(e echo.Context) error {
-	if e.QueryParam("response_type") != oauth.ResponseTypeCode {
+	ctx := e.Request().Context()
+
+	if _, err := c.oauth.ResponseType(e.QueryParam("response_type")); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "response type invalid")
 	}
 
-	client, err := c.oauth.Client(e.Request().Context(), e.QueryParam("client_id"), nil)
+	client, err := c.oauth.Client(ctx, e.QueryParam("client_id"), nil)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "client not found").SetInternal(err)
 	}
@@ -74,13 +76,14 @@ func (c *AuthorizeController) Client(e echo.Context) error {
 // @Success 302
 // @Router      /oauth/v1/authorize [post]
 func (c *AuthorizeController) Authorize(e echo.Context) error {
+	ctx := e.Request().Context()
 	req := new(request.Authorize)
 
 	if err := c.BindValidate(e, req); err != nil {
 		return err
 	}
 
-	if e.QueryParam("response_type") != oauth.ResponseTypeCode {
+	if _, err := c.oauth.ResponseType(e.QueryParam("response_type")); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "response type invalid")
 	}
 
@@ -94,7 +97,7 @@ func (c *AuthorizeController) Authorize(e echo.Context) error {
 		Agent:       e.Request().UserAgent(),
 	}
 
-	redirect, code, err := c.oauth.AuthorizeByCode(e.Request().Context(), inp)
+	redirect, code, err := c.oauth.AuthorizeByCode(ctx, inp)
 	if err != nil {
 		if errors.Is(err, oauth.ErrClientNotFound) {
 			return echo.NewHTTPError(http.StatusBadRequest, "client not found").SetInternal(err)
