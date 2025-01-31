@@ -71,9 +71,8 @@ func (m *Mailing) ForgotPassword(ctx context.Context, user *entity.User, token *
 		UserEmail:  user.Email,
 		Link:       fmt.Sprintf("%s/v1/oauth/reset-password?hash=%s", m.host, token.Hash),
 		Expiration: token.Expiration.Format("02.01.2006 15:04"),
-		//TODO: добавить информацию о пользователе
-		//IP:         token.Payload.IP(),
-		//Agent:      token.Payload.Device(),
+		IP:         token.Payload.IP(),
+		Agent:      token.Payload.Agent(),
 	}
 
 	return m.sentMsg(ctx, user.Email, "Восстановление доступа", "forgot_password.html", data)

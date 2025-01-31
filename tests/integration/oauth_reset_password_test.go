@@ -23,6 +23,8 @@ func (s *TestSuite) TestOauthResetPassword() {
 		s.app.Provider.Config().Client.Id,
 		s.app.Provider.Config().Admin.Id,
 		query.Encode(),
+		TestIP,
+		TestAgent,
 	)
 	s.Require().NoError(err)
 
@@ -31,6 +33,8 @@ func (s *TestSuite) TestOauthResetPassword() {
 		s.app.Provider.Config().Client.Id,
 		s.app.Provider.Config().Admin.Id,
 		query.Encode(),
+		TestIP,
+		TestAgent,
 	)
 	s.Require().NoError(err)
 

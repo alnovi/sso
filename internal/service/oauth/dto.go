@@ -27,6 +27,8 @@ type InputForgotPassword struct {
 	RedirectUri string
 	Query       string
 	Login       string
+	IP          string
+	Agent       string
 }
 
 type InputResetPassword struct {

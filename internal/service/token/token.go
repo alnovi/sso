@@ -80,13 +80,17 @@ func (s *Token) RefreshToken(ctx context.Context, sessionId, clientId, userId st
 	return token, err
 }
 
-func (s *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query string) (*entity.Token, error) {
+func (s *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query, ip, agent string) (*entity.Token, error) {
 	token := &entity.Token{
-		Class:      ClassForgot,
-		Hash:       rand.Base62(costForgot),
-		UserId:     &userId,
-		ClientId:   &clientId,
-		Payload:    entity.Payload{entity.PayloadQuery: query},
+		Class:    ClassForgot,
+		Hash:     rand.Base62(costForgot),
+		UserId:   &userId,
+		ClientId: &clientId,
+		Payload: entity.Payload{
+			entity.PayloadQuery: query,
+			entity.PayloadIP:    ip,
+			entity.PayloadAgent: agent,
+		},
 		NotBefore:  time.Now(),
 		Expiration: time.Now().Add(time.Hour),
 	}

@@ -53,6 +53,8 @@ func (c *PasswordController) ForgotPassword(e echo.Context) error {
 		RedirectUri: e.QueryParam("redirect_uri"),
 		Query:       e.Request().URL.Query().Encode(),
 		Login:       req.Login,
+		IP:          e.RealIP(),
+		Agent:       e.Request().UserAgent(),
 	}
 
 	if err := c.oauth.ForgotPassword(e.Request().Context(), inp); err != nil {

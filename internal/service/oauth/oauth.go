@@ -264,7 +264,7 @@ func (s *OAuth) ForgotPassword(ctx context.Context, inp InputForgotPassword) err
 		return fmt.Errorf("%w: %s", ErrUserNotFound, err)
 	}
 
-	forgotToken, err := s.token.ForgotPasswordToken(ctx, client.Id, user.Id, inp.Query)
+	forgotToken, err := s.token.ForgotPasswordToken(ctx, client.Id, user.Id, inp.Query, inp.IP, inp.Agent)
 	if err != nil {
 		return err
 	}
