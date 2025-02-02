@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/alnovi/sso/internal/service/jwt"
 	"github.com/alnovi/sso/internal/transaport/http/response"
 	"github.com/alnovi/sso/pkg/server"
 	"github.com/alnovi/sso/pkg/validator"
@@ -43,6 +44,11 @@ func (h *ErrorController) Handle(err error, c echo.Context) {
 		data.Code = http.StatusUnprocessableEntity
 		data.Error = server.StatusText(http.StatusUnprocessableEntity)
 		data.Validate = validateError.Fields
+	}
+
+	if errors.Is(err, jwt.ErrUnauthenticated) {
+		data.Code = http.StatusUnauthorized
+		data.Error = server.StatusText(http.StatusUnauthorized)
 	}
 
 	if data.Error == "" {

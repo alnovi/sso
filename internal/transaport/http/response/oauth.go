@@ -12,3 +12,11 @@ type AccessToken struct {
 	RefreshToken string    `json:"refresh_token"`
 	ExpiresIn    time.Time `json:"expires_in"`
 }
+
+type Profile struct {
+	Id        string    `query:"id"`
+	Name      string    `query:"name"`
+	Email     string    `query:"email"`
+	CreatedAt time.Time `query:"created_at"`
+	UpdatedAt time.Time `query:"updated_at"`
+}

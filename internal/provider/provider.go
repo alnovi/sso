@@ -14,6 +14,7 @@ import (
 	"github.com/alnovi/sso/internal/service/oauth"
 	"github.com/alnovi/sso/internal/service/sessions"
 	"github.com/alnovi/sso/internal/service/token"
+	"github.com/alnovi/sso/internal/service/users"
 	"github.com/alnovi/sso/pkg/closer"
 	"github.com/alnovi/sso/pkg/configure"
 	"github.com/alnovi/sso/pkg/db/pgs"
@@ -39,6 +40,7 @@ type Provider struct {
 	jwt         *jwt.JWT
 	session     *sessions.Session
 	token       *token.Token
+	user        *users.User
 }
 
 func New(cfg *config.Config) *Provider {
@@ -211,4 +213,11 @@ func (p *Provider) Token() *token.Token {
 		p.token = token.New(p.Repository(), p.JWT())
 	}
 	return p.token
+}
+
+func (p *Provider) User() *users.User {
+	if p.user == nil {
+		p.user = users.New(p.Repository())
+	}
+	return p.user
 }

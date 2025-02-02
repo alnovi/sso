@@ -80,7 +80,7 @@ func (app *App) initControllers() {
 		server.NewWrap("oauth/v1", []server.HttpController{
 			oauth.NewAuthorizeController(app.Provider.OAuth(), app.Provider.Cookie()),
 			oauth.NewTokenController(app.Provider.OAuth()),
-			oauth.NewProfileController(app.Provider.OAuth(), app.Provider.Cookie()),
+			oauth.NewProfileController(app.Provider.OAuth(), app.Provider.Cookie(), app.Provider.User()),
 			oauth.NewPasswordController(app.Provider.OAuth()),
 		}...),
 	}

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
@@ -31,6 +32,7 @@ const (
 	TestIP            = "127.0.0.1"
 	TestAgent         = "suite-test-agent"
 	TestSecret        = "secret"
+	TestRoleAdmin     = "admin"
 	ImagePostgres     = "postgres:15.3-alpine"
 	ImageMailSMTP     = "mailhog/mailhog:latest"
 	LoggerFormat      = logger.FormatJson
@@ -237,10 +239,24 @@ func (s *TestSuite) buildDataForm(data map[string]any) string {
 	return form.Encode()
 }
 
-func (s *TestSuite) sendToServer(h echo.HandlerFunc, c echo.Context) error {
+func (s *TestSuite) sendToServer(h echo.HandlerFunc, c echo.Context, mws ...echo.MiddlewareFunc) error {
 	var err error
+	var mwh echo.HandlerFunc
+
+	for _, mw := range mws {
+		mwh = mw(func(c echo.Context) error {
+			return c.String(http.StatusOK, "test")
+		})
+
+		if err = mwh(c); err != nil {
+			s.app.HttpServer.HTTPErrorHandler(err, c)
+			return err
+		}
+	}
+
 	if err = h(c); err != nil {
 		s.app.HttpServer.HTTPErrorHandler(err, c)
 	}
+
 	return err
 }

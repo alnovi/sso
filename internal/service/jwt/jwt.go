@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,6 +13,8 @@ import (
 var (
 	ErrInvalidPrivateKey = errors.New("invalid rsa private key")
 	ErrInvalidPublicKey  = errors.New("invalid rsa public key")
+	ErrUnauthenticated   = errors.New("unauthenticated")
+	ErrParseToken        = errors.New("failed to parse token")
 )
 
 type JWT struct {
@@ -54,4 +57,27 @@ func (j *JWT) GenerateAccessToken(clientId, userId, role string) (AccessClaims, 
 	}
 
 	return claims, token, nil
+}
+
+func (j *JWT) ValidateAccessToken(token string) (AccessClaims, error) {
+	claims := AccessClaims{}
+
+	if token == "" {
+		return claims, ErrUnauthenticated
+	}
+
+	token = strings.TrimPrefix(token, "Bearer ")
+
+	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, ErrParseToken
+		}
+		return j.publicKey, nil
+	})
+
+	if err != nil {
+		return claims, fmt.Errorf("%w: %s", ErrUnauthenticated, err)
+	}
+
+	return claims, nil
 }

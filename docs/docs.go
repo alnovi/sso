@@ -135,7 +135,31 @@ const docTemplate = `{
                 }
             }
         },
-        "/oauth/v1/logout": {
+        "/oauth/v1/profile": {
+            "get": {
+                "description": "Профиль пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth profile"
+                ],
+                "summary": "Профиль пользователя",
+                "operationId": "Profile",
+                "responses": {
+                    "200": {
+                        "description": "Профиль пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/response.Profile"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/v1/profile/logout": {
             "post": {
                 "description": "Удаление сессии пользователя",
                 "consumes": [
@@ -145,13 +169,120 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OAuth"
+                    "OAuth profile"
                 ],
                 "summary": "Выход",
                 "operationId": "Logout",
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v1/oauth/forgot-password": {
+            "post": {
+                "description": "Отправка ссылки для смены пароля",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth-password"
+                ],
+                "summary": "Забыли пароль",
+                "operationId": "ForgotPassword",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "code",
+                        "description": "Response type",
+                        "name": "response_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "app_id",
+                        "description": "Client ID",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Redirect URI",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "State",
+                        "name": "state",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Логин пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ForgotPassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение для пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/oauth/reset-password": {
+            "post": {
+                "description": "Изменение пароля пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth-password"
+                ],
+                "summary": "Смена пароля",
+                "operationId": "ResetPassword",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "secret",
+                        "description": "Разовый токен",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Новый пароль пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResetPassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ссылка для перехода",
+                        "schema": {
+                            "$ref": "#/definitions/response.URL"
+                        }
                     }
                 }
             }
@@ -248,6 +379,33 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ForgotPassword": {
+            "type": "object",
+            "required": [
+                "login"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "name@example.com"
+                }
+            }
+        },
+        "request.ResetPassword": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5,
+                    "example": "qwerty"
+                }
+            }
+        },
         "response.AccessToken": {
             "type": "object",
             "properties": {
@@ -258,6 +416,34 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Message": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Profile": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
