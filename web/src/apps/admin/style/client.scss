@@ -1,0 +1,14 @@
+.client-form-layout {
+  display: flex;
+  flex-direction: row;
+
+  .client-form-layout__icon {
+    text-align: center;
+    width: 180px;
+    padding: 25px 24px 0 0;
+  }
+
+  .client-form-layout__form {
+    width: 100%;
+  }
+}

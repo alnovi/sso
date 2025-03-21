@@ -1,0 +1,27 @@
+.block-layout {
+  max-width: 700px;
+  margin: 0 auto 30px auto;
+  .block-layout-header {
+    .block-layout-header__title {
+      font-size: 40px;
+      font-weight: 100;
+      margin: 40px 0 20px 0;
+      line-height: 1;
+      opacity: .9;
+    }
+    .block-layout-header__description {
+      margin: 0;
+      opacity: .7;
+    }
+    .separator {
+      width: 200px;
+      height: 2px;
+      background: #a1a1a1;
+      opacity: .2;
+      margin: 10px 0;
+    }
+  }
+  .block-layout-content {
+    padding-top: 20px;
+  }
+}

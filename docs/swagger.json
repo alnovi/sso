@@ -1,0 +1,17 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Single sign-on (сервис единого входа)",
+        "title": "SSO",
+        "contact": {
+            "name": "Alnovi",
+            "url": "https://github.com/alnovi"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://github.com/alnovi/sso/LICENSE.md"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {}
+}

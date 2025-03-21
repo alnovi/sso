@@ -1,0 +1,39 @@
+html {
+  height: 100%;
+  font-size: 14px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.n-layout-header {
+  background-color: rgba(255, 255, 255, 0);
+  padding: 20px;
+}
+
+.n-layout-content {
+  background-color: rgba(255, 255, 255, 0);
+  height: 80%;
+}
+
+.n-card {
+  height: 40%;
+  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, .2);
+  max-width: 600px;
+  border-radius: 12px;
+}
+
+.err-code {
+  font-size: 84px;
+  font-weight: bold;
+}
+
+.err-message {
+  font-size: 24px;
+  font-weight: normal;
+}

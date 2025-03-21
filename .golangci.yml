@@ -1,0 +1,35 @@
+linters-settings:
+  cyclop:
+    max-complexity: 30
+    package-average: 15.0
+  gosec:
+    excludes:
+      - G505
+      - G401
+  gci:
+    custom-order: true
+    sections:
+      - standard
+      - default
+      - prefix(github.com/alnovi/sso)
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gci
+    - ineffassign
+    - unused
+    - bodyclose
+    - cyclop
+    - errname
+    - copyloopvar
+    - gocyclo
+    - mnd
+    - gosec
+    - nilnil
+    - nilerr
+    - unconvert
+    - goconst
+    - sqlclosecheck
+    - whitespace
