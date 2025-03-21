@@ -15,14 +15,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.24.0
-      - name: use golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.60
       - name: go get
         run: go get ./...
       - name: go lint
-        run: golangci-lint run ./...
+        run: go tool golangci-lint run ./...
 
   go-test-integration:
     runs-on: ubuntu-20.04
