@@ -24,7 +24,7 @@ jobs:
       - name: go lint
         run: golangci-lint run ./...
 
-  go-test:
+  go-test-integration:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout repository
@@ -36,4 +36,4 @@ jobs:
       - name: go get
         run: go get ./...
       - name: go test
-        run: go test -v -count=1 -coverpkg=./internal/...,./pkg/...,./scripts/... -coverprofile=./coverage.out ./...
+        run: go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./tests/...

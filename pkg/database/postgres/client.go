@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -90,6 +91,7 @@ func (c *Client) QueryRow(ctx context.Context, query string, args ...any) pgx.Ro
 }
 
 func (c *Client) ScanQuery(ctx context.Context, dst any, query string, args ...any) error {
+	c.logQuery(query, args)
 	rows, err := c.Query(ctx, query, args...)
 	if err != nil {
 		return err
@@ -101,6 +103,7 @@ func (c *Client) ScanQuery(ctx context.Context, dst any, query string, args ...a
 }
 
 func (c *Client) ScanQueryRow(ctx context.Context, dst any, query string, args ...any) error {
+	c.logQuery(query, args)
 	rows, err := c.master.Query(ctx, query, args...)
 	if err != nil {
 		return err
@@ -115,6 +118,15 @@ func (c *Client) Close() error {
 
 func (c *Client) logQuery(query string, args []any) {
 	if c.logger != nil {
-		c.logger.Debug(query, args)
+		c.logger.Debug(query, logArgs(args)...)
 	}
+}
+
+func logArgs(args []any) []any {
+	attr := make([]any, 0, len(args)*2) //nolint:mnd
+	for i, arg := range args {
+		k := fmt.Sprintf("$%d", i+1)
+		attr = append(attr, slog.Any(k, arg))
+	}
+	return attr
 }
