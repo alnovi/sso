@@ -1,0 +1,24 @@
+name: lint
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: go get
+        run: go get ./...
+      - name: go lint
+        run: go tool golangci-lint run ./...
+      - name: govulncheck
+        uses: golang/govulncheck-action@v1
