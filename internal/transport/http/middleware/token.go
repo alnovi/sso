@@ -25,7 +25,7 @@ func Token(auth *oauth.OAuth, cook *cookie.Cookie, clientId, clientSecret string
 				refreshToken = sessionToken.Value
 			}
 
-			if accessToken == "" || refreshToken == "" {
+			if accessToken == "" {
 				return next(e)
 			}
 

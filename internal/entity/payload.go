@@ -5,10 +5,6 @@ import (
 	"encoding/json"
 )
 
-const (
-	PayloadQuery = "query"
-)
-
 type Payload map[string]string
 
 func (p *Payload) Scan(value interface{}) error {
@@ -20,8 +16,4 @@ func (p *Payload) Scan(value interface{}) error {
 
 func (p *Payload) Value() (driver.Value, error) {
 	return json.Marshal(p)
-}
-
-func (p *Payload) Query() string {
-	return (*p)[PayloadQuery]
 }

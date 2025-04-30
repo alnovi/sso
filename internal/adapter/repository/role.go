@@ -56,25 +56,11 @@ func (r *Repository) RoleByUserId(ctx context.Context, userId string, opts ...Op
 	return roles, r.checkErr(err)
 }
 
-func (r *Repository) RoleCreate(ctx context.Context, role *entity.Role) error {
+func (r *Repository) RoleUpdate(ctx context.Context, role *entity.Role) error {
 	builder := r.qb.Insert(RoleTable).
 		Columns(roleFields...).
-		Values(role.ClientId, role.UserId, role.Role)
-
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db.Exec(ctx, query, args...)
-
-	return r.checkErr(err)
-}
-
-func (r *Repository) RoleUpdate(ctx context.Context, role *entity.Role) error {
-	builder := r.qb.Update(RoleTable).
-		Set("role", role.Role).
-		Where(sq.Eq{"client_id": role.ClientId, "user_id": role.UserId})
+		Values(role.ClientId, role.UserId, role.Role).
+		Suffix(`ON CONFLICT (client_id, user_id) DO UPDATE SET role = EXCLUDED.role`)
 
 	query, args, err := builder.ToSql()
 	if err != nil {

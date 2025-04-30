@@ -36,14 +36,14 @@ lint-fix:
 ## test: запуск всех тестов
 .PHONY: test
 test:
-	@go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./cmd/... ./internal/... ./pkg/... ./tests/...
+	@go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./internal/... ./pkg/... ./tests/...
 	@go tool cover -html=./coverage.out
 	@rm ./coverage.out
 
 ## test-unit: запуск unit тестов
 .PHONY: test-unit
 test-unit:
-	@go test -v -race -count=1 --covermode=atomic -coverpkg=./... -coverprofile=./coverage.out ./internal/... ./pkg/...
+	@go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./internal/... ./pkg/...
 	#go tool cover -func=./coverage.out
 	@go tool cover -html=./coverage.out
 	@rm ./coverage.out

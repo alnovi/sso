@@ -104,6 +104,7 @@ func (app *App) initControllers() {
 			api.NewClientController(app.Provider.StorageClients()),
 			api.NewUserController(app.Provider.StorageUsers(), app.Provider.StorageRoles()),
 			api.NewSessionController(app.Provider.StorageSessions()),
+			api.NewStatsController(app.Provider.Stats()),
 		}...).Use(mdwAdminAuth, mdwRoleAdmin),
 	}
 }

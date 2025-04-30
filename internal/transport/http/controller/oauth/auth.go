@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -38,7 +39,7 @@ func (c *AuthController) Form(e echo.Context) error {
 			SessionId:    session.Value,
 		}
 
-		_, _, redirectURI, err = c.oauth.AuthorizeBySession(e.Request().Context(), inp)
+		_, _, redirectURI, err = c.oauth.AuthorizeBySession(context.Background(), inp)
 		if errors.Is(err, oauth.ErrSessionNotFound) {
 			e.SetCookie(c.cookie.Remove(cookie.SessionId))
 		}
@@ -54,7 +55,7 @@ func (c *AuthController) Form(e echo.Context) error {
 		RedirectUri:  e.QueryParam("redirect_uri"),
 	}
 
-	client, err := c.oauth.AuthorizeCheckParams(e.Request().Context(), inp)
+	client, err := c.oauth.AuthorizeCheckParams(context.Background(), inp)
 	if err != nil {
 		if errors.Is(err, oauth.ErrInvalidResponseType) {
 			return echo.NewHTTPError(http.StatusBadRequest, "Не валидный response-type").SetInternal(err)
@@ -95,7 +96,7 @@ func (c *AuthController) Authorize(e echo.Context) error {
 		UserAgent:    e.Request().UserAgent(),
 	}
 
-	_, token, redirectURI, err := c.oauth.AuthorizeByCode(e.Request().Context(), inp)
+	_, token, redirectURI, err := c.oauth.AuthorizeByCode(context.Background(), inp)
 	if err != nil {
 		if errors.Is(err, oauth.ErrInvalidResponseType) {
 			return echo.NewHTTPError(http.StatusBadRequest, "Не валидный response-type").SetInternal(err)

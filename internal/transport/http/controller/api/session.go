@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -22,20 +23,22 @@ func NewSessionController(sessions *storage.Sessions) *SessionController {
 func (c *SessionController) List(e echo.Context) error {
 	userSessionId := c.MustSessionId(e)
 
-	sessions, err := c.sessions.List(e.Request().Context())
+	sessions, err := c.sessions.List(context.Background())
 	if err != nil {
 		return err
 	}
+
 	return e.JSON(http.StatusOK, response.NewSessionsUser(sessions, userSessionId))
 }
 
 func (c *SessionController) Get(e echo.Context) error {
 	userSessionId := c.MustSessionId(e)
 
-	session, err := c.sessions.GetById(e.Request().Context(), e.Param("id"))
+	session, err := c.sessions.GetById(context.Background(), e.Param("id"))
 	if err != nil {
 		return err
 	}
+
 	return e.JSON(http.StatusOK, response.NewSessionUser(session, userSessionId))
 }
 
@@ -44,7 +47,7 @@ func (c *SessionController) Delete(e echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "вы не можете удалить текущую сессию")
 	}
 
-	if err := c.sessions.DeleteById(e.Request().Context(), e.Param("id")); err != nil {
+	if err := c.sessions.DeleteById(context.Background(), e.Param("id")); err != nil {
 		return err
 	}
 

@@ -26,6 +26,7 @@ import (
 	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/app/server"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/pkg/configure"
 	"github.com/alnovi/sso/pkg/logger"
 	"github.com/alnovi/sso/pkg/utils"
@@ -35,7 +36,7 @@ const (
 	TestIP             = "127.0.0.1"
 	TestAgent          = "suite-test-agent"
 	TestSecret         = "secret"
-	TestRoleAdmin      = "admin"
+	TestRole           = entity.RoleManager
 	ImagePostgres      = "postgres:16-alpine"
 	ImageMailSMTP      = "mailhog/mailhog:latest"
 	LoggerFormat       = logger.FormatDiscard
@@ -56,7 +57,7 @@ type ContainerLogger struct {
 }
 
 func (l *ContainerLogger) Printf(f string, args ...interface{}) {
-	l.logger.Info(f, args...)
+	l.logger.Info(fmt.Sprintf(f, args...))
 }
 
 func NewContainerLogger(format, level string) *ContainerLogger {
@@ -108,6 +109,9 @@ func (s *TestSuite) SetupTest() {
 
 	err = s.app.Provider.Repository().UserCreate(ctx, TestUser)
 	s.Require().NoError(err)
+
+	err = s.app.Provider.Repository().RoleUpdate(ctx, &entity.Role{ClientId: TestClient.Id, UserId: TestUser.Id, Role: TestRole})
+	s.Require().NoError(err)
 }
 
 func (s *TestSuite) TearDownTest() {
@@ -134,7 +138,7 @@ func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
 	cfg.Jwt.PrivateKey = TestSecret
 	cfg.Jwt.PublicKey = TestSecret
 
-	cfg.CAdmin.Id = uuid.NewString()
+	cfg.CAdmin.Id = "sso-admin"
 	cfg.CAdmin.Name = "Client Admin"
 	cfg.CAdmin.Secret = TestSecret
 	cfg.CAdmin.Callback = "https://127.0.0.1"
@@ -324,4 +328,27 @@ func (s *TestSuite) sendToServer(h echo.HandlerFunc, c echo.Context, mws ...echo
 	}
 
 	return err
+}
+
+func (s *TestSuite) accessTokens(clientId, userId, role string, opts ...token.Option) (session *entity.Session, access, refresh *entity.Token, err error) {
+	session = &entity.Session{
+		Id:     uuid.NewString(),
+		UserId: userId,
+		Ip:     TestIP,
+		Agent:  TestAgent,
+	}
+
+	if err = s.app.Provider.Repository().SessionCreate(context.Background(), session); err != nil {
+		return
+	}
+
+	if access, err = s.app.Provider.Token().AccessToken(context.Background(), session.Id, clientId, userId, role, opts...); err != nil {
+		return
+	}
+
+	if refresh, err = s.app.Provider.Token().RefreshToken(context.Background(), session.Id, clientId, userId, time.Now(), opts...); err != nil {
+		return
+	}
+
+	return
 }

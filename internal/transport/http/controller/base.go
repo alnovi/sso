@@ -28,11 +28,6 @@ func (c *BaseController) MustSessionId(e echo.Context) string {
 	return val
 }
 
-func (c *BaseController) ClientId(e echo.Context) (string, bool) {
-	val, ok := e.Get(CtxClientId).(string)
-	return val, ok
-}
-
 func (c *BaseController) UserId(e echo.Context) (string, bool) {
 	val, ok := e.Get(CtxUserId).(string)
 	return val, ok
@@ -44,11 +39,6 @@ func (c *BaseController) MustUserId(e echo.Context) string {
 		panic("user id not found")
 	}
 	return val
-}
-
-func (c *BaseController) UserRole(e echo.Context) (string, bool) {
-	val, ok := e.Get(CtxUserRole).(string)
-	return val, ok
 }
 
 func (c *BaseController) BindValidate(e echo.Context, dst any) error {

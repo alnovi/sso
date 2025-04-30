@@ -33,7 +33,7 @@ func (r *Repository) Users(ctx context.Context, opts ...OptSelect) ([]*entity.Us
 func (r *Repository) UsersCount(ctx context.Context, opts ...OptSelect) (int, error) {
 	count := 0
 
-	builder := r.qb.Select("COUNT (*)").From(UserTable)
+	builder := r.qb.Select("COUNT (id)").From(UserTable)
 	builder = r.applyOptSelect(builder, opts)
 
 	query, args, err := builder.ToSql()

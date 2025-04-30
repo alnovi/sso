@@ -66,7 +66,7 @@ func (r *Repository) ClientById(ctx context.Context, id string, opts ...OptSelec
 
 	err = r.db.ScanQueryRow(ctx, client, query, args...)
 
-	return client, err
+	return client, r.checkErr(err)
 }
 
 func (r *Repository) ClientByIds(ctx context.Context, ids []string, opts ...OptSelect) ([]*entity.Client, error) {
@@ -85,7 +85,7 @@ func (r *Repository) ClientByIds(ctx context.Context, ids []string, opts ...OptS
 
 	err = r.db.ScanQuery(ctx, &clients, query, args...)
 
-	return clients, err
+	return clients, r.checkErr(err)
 }
 
 func (r *Repository) ClientCreate(ctx context.Context, client *entity.Client) error {

@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"time"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -23,12 +21,6 @@ func NotSystem() OptSelect {
 func ForUpdate() OptSelect {
 	return func(builder sq.SelectBuilder) sq.SelectBuilder {
 		return builder.Suffix("FOR UPDATE")
-	}
-}
-
-func IsNull(field string) OptSelect {
-	return func(builder sq.SelectBuilder) sq.SelectBuilder {
-		return builder.Where(sq.Eq{field: nil})
 	}
 }
 
@@ -59,12 +51,6 @@ func IP(val string) OptSelect {
 func Agent(val string) OptSelect {
 	return func(builder sq.SelectBuilder) sq.SelectBuilder {
 		return builder.Where(sq.Eq{"agent": val})
-	}
-}
-
-func Expiration(val time.Time) OptSelect {
-	return func(builder sq.SelectBuilder) sq.SelectBuilder {
-		return builder.Where(sq.Lt{"expiration": val})
 	}
 }
 

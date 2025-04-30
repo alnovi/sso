@@ -45,25 +45,6 @@ func (r *Repository) TokenByHash(ctx context.Context, hash string, opts ...OptSe
 	return token, r.checkErr(err)
 }
 
-func (r *Repository) TokenByClassAndSessionId(ctx context.Context, class, sessionId string, opts ...OptSelect) (*entity.Token, error) {
-	token := new(entity.Token)
-
-	builder := r.qb.Select(tokenFields...).
-		From(TokenTable).
-		Where(sq.Eq{"class": class, "session_id": sessionId}).
-		Limit(1)
-	builder = r.applyOptSelect(builder, opts)
-
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.db.ScanQueryRow(ctx, token, query, args...)
-
-	return token, r.checkErr(err)
-}
-
 func (r *Repository) TokenCreate(ctx context.Context, token *entity.Token) error {
 	now := time.Now()
 

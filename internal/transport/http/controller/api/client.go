@@ -81,9 +81,6 @@ func (c *ClientController) Update(e echo.Context) error {
 
 	client, err := c.clients.Update(e.Request().Context(), inp)
 	if err != nil {
-		if errors.Is(err, storage.ErrClientIdExists) {
-			return validator.NewValidateErrorWithMessage("id", "Такое значение уже занято")
-		}
 		return err
 	}
 

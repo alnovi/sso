@@ -185,23 +185,6 @@ func (r *Repository) SessionDeleteById(ctx context.Context, id string) error {
 	return r.checkErr(err)
 }
 
-func (r *Repository) SessionDeleteByUserId(ctx context.Context, userId string) error {
-	if err := r.checkUUID(userId); err != nil {
-		return err
-	}
-
-	builder := r.qb.Delete(SessionTable).Where(sq.Eq{"user_id": userId})
-
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db.Exec(ctx, query, args...)
-
-	return r.checkErr(err)
-}
-
 func (r *Repository) SessionDeleteWithoutTokens(ctx context.Context) error {
 	builder := r.qb.Delete(SessionTable).Where(sq.Expr("NOT EXISTS(SELECT * FROM tokens WHERE session_id = sessions.id)"))
 

@@ -11,6 +11,28 @@ var (
 	v = NewEchoValidator()
 )
 
+type ruleTest struct {
+	tag string
+	msg string
+	res bool
+}
+
+func (t *ruleTest) Tag() string {
+	return t.tag
+}
+
+func (t *ruleTest) ErrMsg() string {
+	return t.msg
+}
+
+func (t *ruleTest) CallIfNull() bool {
+	return false
+}
+
+func (t *ruleTest) Validate(fl validator.FieldLevel) bool {
+	return t.res
+}
+
 func TestValidator_Validate_1(t *testing.T) {
 	type Data struct {
 		Id    string `json:"-" validate:"required"`
@@ -52,9 +74,7 @@ func TestValidator_AddValidationTranslation(t *testing.T) {
 		Tag: "system",
 	}
 
-	err := v.AddValidationTranslation("tag", "не верный формат для тега", func(fl validator.FieldLevel) bool {
-		return false
-	})
+	err := v.AddRule(&ruleTest{tag: "tag", msg: "не верный формат для тега", res: false})
 
 	assert.NoError(t, err)
 

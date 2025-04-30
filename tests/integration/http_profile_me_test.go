@@ -1,11 +1,8 @@
 package integration
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/google/uuid"
 
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/transport/http/controller"
@@ -13,14 +10,7 @@ import (
 )
 
 func (s *TestSuite) TestHttpProfileMe() {
-	session := &entity.Session{
-		Id:     uuid.NewString(),
-		UserId: s.config().UAdmin.Id,
-		Ip:     TestIP,
-		Agent:  TestAgent,
-	}
-
-	err := s.app.Provider.Repository().SessionCreate(context.Background(), session)
+	session, _, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
 	testCases := []struct {
@@ -41,11 +31,13 @@ func (s *TestSuite) TestHttpProfileMe() {
 			},
 			expCode: http.StatusOK,
 			expBody: s.config().UAdmin.Id,
-		}, {
+		},
+		{
 			name:    "Unauthorized",
 			expCode: http.StatusUnauthorized,
 			expErr:  "Unauthorized: session not found",
-		}, {
+		},
+		{
 			name: "Invalid user agent",
 			headers: map[string]string{
 				"User-Agent": "invalid",

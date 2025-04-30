@@ -9,11 +9,12 @@ import (
 	"github.com/alnovi/sso/internal/service/admin"
 	"github.com/alnovi/sso/internal/service/cookie"
 	"github.com/alnovi/sso/internal/service/crontask"
-	"github.com/alnovi/sso/internal/service/jwt"
 	"github.com/alnovi/sso/internal/service/oauth"
 	"github.com/alnovi/sso/internal/service/profile"
 	"github.com/alnovi/sso/internal/service/rule"
+	"github.com/alnovi/sso/internal/service/stats"
 	"github.com/alnovi/sso/internal/service/storage"
+	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/pkg/closer"
 	"github.com/alnovi/sso/pkg/configure"
 	"github.com/alnovi/sso/pkg/database/postgres"
@@ -34,7 +35,7 @@ type Provider struct {
 	repository  *repository.Repository
 	transaction repository.Transaction
 	scheduler   *scheduler.Scheduler
-	jwt         *jwt.JWT
+	token       *token.Token
 	oauth       *oauth.OAuth
 	cookie      *cookie.Cookie
 	profile     *profile.UserProfile
@@ -43,6 +44,7 @@ type Provider struct {
 	users       *storage.Users
 	roles       *storage.Roles
 	sessions    *storage.Sessions
+	stats       *stats.Stats
 }
 
 func New(config *config.Config) *Provider {
@@ -87,9 +89,6 @@ func (p *Provider) Validator() *validator.EchoValidator {
 
 		err = p.validator.AddRule(rule.NewClientID())
 		utils.MustMsg(err, "failed to add rule 'client id'")
-
-		err = p.validator.AddRule(rule.NewDatabaseNotExist(p.DB()))
-		utils.MustMsg(err, "failed to add rule 'database not exist'")
 	}
 	return p.validator
 }
@@ -171,18 +170,18 @@ func (p *Provider) Scheduler() *scheduler.Scheduler {
 	return p.scheduler
 }
 
-func (p *Provider) JWT() *jwt.JWT {
-	if p.jwt == nil {
+func (p *Provider) Token() *token.Token {
+	if p.token == nil {
 		var err error
-		p.jwt, err = jwt.New([]byte(p.Config().Jwt.PrivateKey), []byte(p.Config().Jwt.PublicKey))
-		utils.MustMsg(err, "failed to parse JWT keys")
+		p.token, err = token.New([]byte(p.Config().Jwt.PrivateKey), []byte(p.Config().Jwt.PublicKey), p.Repository())
+		utils.MustMsg(err, "failed to init Token service")
 	}
-	return p.jwt
+	return p.token
 }
 
 func (p *Provider) OAuth() *oauth.OAuth {
 	if p.oauth == nil {
-		p.oauth = oauth.NewOAuth(p.Repository(), p.Transaction(), p.JWT())
+		p.oauth = oauth.NewOAuth(p.Repository(), p.Transaction(), p.Token())
 	}
 	return p.oauth
 }
@@ -234,4 +233,11 @@ func (p *Provider) StorageSessions() *storage.Sessions {
 		p.sessions = storage.NewSessions(p.Repository(), p.Transaction())
 	}
 	return p.sessions
+}
+
+func (p *Provider) Stats() *stats.Stats {
+	if p.stats == nil {
+		p.stats = stats.NewStats(p.Repository())
+	}
+	return p.stats
 }

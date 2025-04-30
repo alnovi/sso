@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/alnovi/sso/internal/transport/http/controller/oauth"
+	"github.com/alnovi/sso/internal/transport/http/middleware"
 )
 
 func (s *TestSuite) TestHttpOAuthAuthorize() {
@@ -52,6 +53,7 @@ func (s *TestSuite) TestHttpOAuthAuthorize() {
 			data: map[string]any{
 				"login":    s.config().UAdmin.Email,
 				"password": s.config().UAdmin.Password,
+				"remember": true,
 			},
 			expCode: http.StatusFound,
 			expHeader: map[string]string{
@@ -210,6 +212,9 @@ func (s *TestSuite) TestHttpOAuthAuthorize() {
 		},
 	}
 
+	ms := []echo.MiddlewareFunc{
+		middleware.TrailingSlash(),
+	}
 	ctrl := oauth.NewAuthController(s.app.Provider.OAuth(), s.app.Provider.Cookie())
 
 	for _, tc := range testCases {
@@ -223,7 +228,7 @@ func (s *TestSuite) TestHttpOAuthAuthorize() {
 
 			c := s.app.HttpServer.NewContext(req, rec)
 
-			if err := s.sendToServer(ctrl.Authorize, c); err != nil {
+			if err := s.sendToServer(ctrl.Authorize, c, ms...); err != nil {
 				if tc.expErr != "" {
 					s.Assert().ErrorContains(err, tc.expErr, MsgNotAssertError)
 				} else {

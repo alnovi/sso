@@ -48,20 +48,6 @@ func (e *EchoValidator) Validate(i interface{}) error {
 	return nil
 }
 
-func (e *EchoValidator) AddValidationTranslation(tag, msg string, fn validator.Func) error {
-	err := e.validator.RegisterValidation(tag, fn, false)
-	if err != nil {
-		return err
-	}
-
-	return e.validator.RegisterTranslation(tag, e.translator, func(ut ut.Translator) error {
-		return ut.Add(tag, msg, true)
-	}, func(ut ut.Translator, fe validator.FieldError) string {
-		t, _ := ut.T(tag, fe.Field())
-		return t
-	})
-}
-
 func (e *EchoValidator) AddRule(rule Rule) error {
 	if err := e.validator.RegisterValidation(rule.Tag(), rule.Validate, rule.CallIfNull()); err != nil {
 		return err

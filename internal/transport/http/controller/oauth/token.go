@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -37,7 +38,7 @@ func (c *TokenController) tokenByCode(e echo.Context) error {
 		Code:         e.QueryParam("code"),
 	}
 
-	access, refresh, err := c.oauth.TokenByCode(e.Request().Context(), inp)
+	access, refresh, err := c.oauth.TokenByCode(context.Background(), inp)
 	if err != nil {
 		if errors.Is(err, oauth.ErrClientNotFound) {
 			return echo.NewHTTPError(http.StatusBadRequest, "client not found").SetInternal(err)
@@ -62,7 +63,7 @@ func (c *TokenController) tokenByRefresh(e echo.Context) error {
 		Refresh:      e.QueryParam("refresh_token"),
 	}
 
-	access, refresh, err := c.oauth.TokenByRefresh(e.Request().Context(), inp)
+	access, refresh, err := c.oauth.TokenByRefresh(context.Background(), inp)
 	if err != nil {
 		if errors.Is(err, oauth.ErrClientNotFound) {
 			return echo.NewHTTPError(http.StatusBadRequest, "client not found").SetInternal(err)

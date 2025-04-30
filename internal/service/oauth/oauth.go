@@ -6,15 +6,12 @@ import (
 	"fmt"
 	"net/url"
 	"slices"
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
-	"github.com/alnovi/sso/internal/service/jwt"
-	"github.com/alnovi/sso/pkg/rand"
+	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/pkg/utils"
 )
 
@@ -39,13 +36,13 @@ var (
 )
 
 type OAuth struct {
-	repo *repository.Repository
-	tm   repository.Transaction
-	jwt  *jwt.JWT
+	repo  *repository.Repository
+	tm    repository.Transaction
+	token *token.Token
 }
 
-func NewOAuth(repo *repository.Repository, tm repository.Transaction, jwt *jwt.JWT) *OAuth {
-	return &OAuth{repo: repo, tm: tm, jwt: jwt}
+func NewOAuth(repo *repository.Repository, tm repository.Transaction, token *token.Token) *OAuth {
+	return &OAuth{repo: repo, tm: tm, token: token}
 }
 
 func (s *OAuth) AuthorizeCheckParams(ctx context.Context, inp InputAuthorizeParams) (*entity.Client, error) {
@@ -68,7 +65,7 @@ func (s *OAuth) AuthorizeCheckParams(ctx context.Context, inp InputAuthorizePara
 
 func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthorizeByCode) (*entity.Client, *entity.Token, *url.URL, error) {
 	var session *entity.Session
-	var token *entity.Token
+	var code *entity.Token
 
 	if !slices.Contains(responseTypes, inp.ResponseType) {
 		return nil, nil, nil, ErrInvalidResponseType
@@ -113,18 +110,9 @@ func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthorizeByCode) (
 			}
 		}
 
-		token = &entity.Token{
-			Id:         uuid.NewString(),
-			Class:      entity.TokenClassCode,
-			Hash:       rand.Base62(entity.TokenCodeCost),
-			SessionId:  &session.Id,
-			UserId:     &user.Id,
-			ClientId:   &client.Id,
-			NotBefore:  time.Now(),
-			Expiration: time.Now().Add(entity.TokenCodeTTL),
-		}
+		code, err = s.token.CodeToken(ctx, session.Id, client.Id, user.Id)
 
-		return s.repo.TokenCreate(ctx, token)
+		return err
 	})
 
 	if err != nil {
@@ -133,11 +121,11 @@ func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthorizeByCode) (
 
 	redirectUri, _ := url.Parse(inp.RedirectUri)
 	query := redirectUri.Query()
-	query.Add("code", token.Hash)
+	query.Add("code", code.Hash)
 	query.Add("state", inp.State)
 	redirectUri.RawQuery = query.Encode()
 
-	return client, token, redirectUri, nil
+	return client, code, redirectUri, nil
 }
 
 func (s *OAuth) AuthorizeBySession(ctx context.Context, inp InputAuthorizeBySession) (*entity.Client, *entity.Token, *url.URL, error) {
@@ -160,29 +148,18 @@ func (s *OAuth) AuthorizeBySession(ctx context.Context, inp InputAuthorizeBySess
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrSessionNotFound, err)
 	}
 
-	token := &entity.Token{
-		Id:         uuid.NewString(),
-		Class:      entity.TokenClassCode,
-		Hash:       rand.Base62(entity.TokenCodeCost),
-		SessionId:  &session.Id,
-		UserId:     &session.UserId,
-		ClientId:   &client.Id,
-		NotBefore:  time.Now(),
-		Expiration: time.Now().Add(entity.TokenCodeTTL),
-	}
-
-	err = s.repo.TokenCreate(ctx, token)
+	code, err := s.token.CodeToken(ctx, session.Id, client.Id, session.UserId)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	redirectUri, _ := url.Parse(inp.RedirectUri)
 	query := redirectUri.Query()
-	query.Add("code", token.Hash)
+	query.Add("code", code.Hash)
 	query.Add("state", inp.State)
 	redirectUri.RawQuery = query.Encode()
 
-	return client, token, redirectUri, nil
+	return client, code, redirectUri, nil
 }
 
 func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.Token, *entity.Token, error) {
@@ -197,8 +174,6 @@ func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.
 
 	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
 		var role *entity.Role
-		var jwtClaims jwt.AccessClaims
-		var jwtToken string
 
 		code, err = s.repo.TokenByHash(ctx, inp.Code, repository.Class(entity.TokenClassCode), repository.ForUpdate())
 		if err != nil {
@@ -230,34 +205,13 @@ func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.
 			return fmt.Errorf("%w: %s", ErrForbidden, err)
 		}
 
-		jwtClaims, jwtToken, err = s.jwt.AccessToken(*code.SessionId, client.Id, *code.UserId, role.Role)
+		accessToken, err = s.token.AccessToken(ctx, *code.SessionId, client.Id, *code.UserId, role.Role)
 		if err != nil {
-			return fmt.Errorf("%w: %s", ErrForbidden, err)
+			return err
 		}
 
-		accessToken = &entity.Token{
-			Id:         uuid.NewString(),
-			Class:      entity.TokenClassAccess,
-			Hash:       jwtToken,
-			SessionId:  code.SessionId,
-			UserId:     code.UserId,
-			ClientId:   code.ClientId,
-			NotBefore:  jwtClaims.NotBefore(),
-			Expiration: jwtClaims.ExpiresAt(),
-		}
-
-		refreshToken = &entity.Token{
-			Id:         uuid.NewString(),
-			Class:      entity.TokenClassRefresh,
-			Hash:       rand.Base62(entity.TokenRefreshCost),
-			SessionId:  code.SessionId,
-			UserId:     code.UserId,
-			ClientId:   code.ClientId,
-			NotBefore:  jwtClaims.ExpiresAt(),
-			Expiration: jwtClaims.ExpiresAt().Add(entity.TokenRefreshTTL),
-		}
-
-		if err = s.repo.TokenCreate(ctx, refreshToken); err != nil {
+		refreshToken, err = s.token.RefreshToken(ctx, *code.SessionId, client.Id, *code.UserId, accessToken.Expiration)
+		if err != nil {
 			return err
 		}
 
@@ -279,8 +233,6 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 
 	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
 		var role *entity.Role
-		var jwtClaims jwt.AccessClaims
-		var jwtToken string
 
 		refresh, err = s.repo.TokenByHash(ctx, inp.Refresh, repository.Class(entity.TokenClassRefresh), repository.ForUpdate())
 		if err != nil {
@@ -312,34 +264,13 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 			return fmt.Errorf("%w: %s", ErrForbidden, err)
 		}
 
-		jwtClaims, jwtToken, err = s.jwt.AccessToken(*refresh.SessionId, client.Id, *refresh.UserId, role.Role)
+		accessToken, err = s.token.AccessToken(ctx, *refresh.SessionId, client.Id, *refresh.UserId, role.Role)
 		if err != nil {
-			return fmt.Errorf("%w: %s", ErrForbidden, err)
+			return err
 		}
 
-		accessToken = &entity.Token{
-			Id:         uuid.NewString(),
-			Class:      entity.TokenClassAccess,
-			Hash:       jwtToken,
-			SessionId:  refresh.SessionId,
-			UserId:     refresh.UserId,
-			ClientId:   refresh.ClientId,
-			NotBefore:  jwtClaims.NotBefore(),
-			Expiration: jwtClaims.ExpiresAt(),
-		}
-
-		refreshToken = &entity.Token{
-			Id:         uuid.NewString(),
-			Class:      entity.TokenClassRefresh,
-			Hash:       rand.Base62(entity.TokenRefreshCost),
-			SessionId:  refresh.SessionId,
-			UserId:     refresh.UserId,
-			ClientId:   refresh.ClientId,
-			NotBefore:  jwtClaims.ExpiresAt(),
-			Expiration: jwtClaims.ExpiresAt().Add(entity.TokenRefreshTTL),
-		}
-
-		if err = s.repo.TokenCreate(ctx, refreshToken); err != nil {
+		refreshToken, err = s.token.RefreshToken(ctx, *refresh.SessionId, client.Id, *refresh.UserId, accessToken.Expiration)
+		if err != nil {
 			return err
 		}
 
@@ -349,9 +280,8 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 	return accessToken, refreshToken, err
 }
 
-func (s *OAuth) ValidateAccessToken(_ context.Context, token string) (*jwt.AccessClaims, error) {
-	token = strings.TrimPrefix(token, "Bearer ")
-	claims, err := s.jwt.ParseToken(token)
+func (s *OAuth) ValidateAccessToken(ctx context.Context, token string) (*token.AccessClaims, error) {
+	claims, err := s.token.ValidateAccessToken(ctx, token)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrUnauthorized, err)
 	}
@@ -359,14 +289,5 @@ func (s *OAuth) ValidateAccessToken(_ context.Context, token string) (*jwt.Acces
 }
 
 func (s *OAuth) ValidateRefreshToken(ctx context.Context, token string) (*entity.Token, error) {
-	refresh, err := s.repo.TokenByHash(ctx, token, repository.Class(entity.TokenClassRefresh))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrTokenNotFound, err)
-	}
-
-	if !refresh.IsActive() {
-		return nil, fmt.Errorf("%w: tiken is ", ErrTokenNotFound)
-	}
-
-	return refresh, nil
+	return s.token.ValidateRefreshToken(ctx, token)
 }

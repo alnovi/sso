@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
@@ -50,21 +49,9 @@ func (s *Roles) Update(ctx context.Context, clientId, userId string, userRole *s
 		return s.repo.RoleDelete(ctx, clientId, userId)
 	}
 
-	role, err := s.repo.Role(ctx, clientId, userId)
-	if err != nil && !errors.Is(err, repository.ErrNoResult) {
-		return err
-	}
-
-	if role != nil {
-		role.Role = *userRole
-		return s.repo.RoleUpdate(ctx, role)
-	}
-
-	role = &entity.Role{
+	return s.repo.RoleUpdate(ctx, &entity.Role{
 		ClientId: clientId,
 		UserId:   userId,
 		Role:     *userRole,
-	}
-
-	return s.repo.RoleCreate(ctx, role)
+	})
 }

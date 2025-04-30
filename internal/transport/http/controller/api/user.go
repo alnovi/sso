@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -24,7 +25,7 @@ func NewUserController(users *storage.Users, roles *storage.Roles) *UserControll
 }
 
 func (c *UserController) List(e echo.Context) error {
-	users, err := c.users.All(e.Request().Context())
+	users, err := c.users.All(context.Background())
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,7 @@ func (c *UserController) List(e echo.Context) error {
 }
 
 func (c *UserController) Get(e echo.Context) error {
-	user, err := c.users.GetById(e.Request().Context(), e.Param("id"))
+	user, err := c.users.GetById(context.Background(), e.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -40,7 +41,7 @@ func (c *UserController) Get(e echo.Context) error {
 }
 
 func (c *UserController) Clients(e echo.Context) error {
-	clientRole, err := c.roles.ClientRoleByUserId(e.Request().Context(), e.Param("id"))
+	clientRole, err := c.roles.ClientRoleByUserId(context.Background(), e.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,7 @@ func (c *UserController) Create(e echo.Context) error {
 		Password: req.Password,
 	}
 
-	user, err := c.users.Create(e.Request().Context(), inp)
+	user, err := c.users.Create(context.Background(), inp)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserEmailExists) {
 			return validator.NewValidateErrorWithMessage("email", "Такое значение уже занято")
@@ -85,7 +86,7 @@ func (c *UserController) Update(e echo.Context) error {
 		Password: req.Password,
 	}
 
-	user, err := c.users.Update(e.Request().Context(), inp)
+	user, err := c.users.Update(context.Background(), inp)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserEmailExists) {
 			return validator.NewValidateErrorWithMessage("email", "Такое значение уже занято")
@@ -97,7 +98,7 @@ func (c *UserController) Update(e echo.Context) error {
 }
 
 func (c *UserController) Delete(e echo.Context) error {
-	user, err := c.users.Delete(e.Request().Context(), e.Param("id"))
+	user, err := c.users.Delete(context.Background(), e.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -105,7 +106,7 @@ func (c *UserController) Delete(e echo.Context) error {
 }
 
 func (c *UserController) Restore(e echo.Context) error {
-	user, err := c.users.Restore(e.Request().Context(), e.Param("id"))
+	user, err := c.users.Restore(context.Background(), e.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -113,7 +114,7 @@ func (c *UserController) Restore(e echo.Context) error {
 }
 
 func (c *UserController) UpdateRole(e echo.Context) error {
-	ctx := e.Request().Context()
+	ctx := context.Background()
 	clientId := e.Param("cid")
 	userId := e.Param("uid")
 

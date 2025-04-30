@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +23,7 @@ func NewAdminController(admin *admin.Admin, cookie *cookie.Cookie, token echo.Mi
 
 func (c *AdminController) Home(e echo.Context) error {
 	if _, ok := c.UserId(e); !ok {
-		authorizeURL, err := c.admin.AuthorizeURI(e.Request().Context())
+		authorizeURL, err := c.admin.AuthorizeURI(context.Background())
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 		}
@@ -32,7 +33,7 @@ func (c *AdminController) Home(e echo.Context) error {
 }
 
 func (c *AdminController) Callback(e echo.Context) error {
-	access, refresh, err := c.admin.TokenByCode(e.Request().Context(), e.QueryParam("code"))
+	access, refresh, err := c.admin.TokenByCode(context.Background(), e.QueryParam("code"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
@@ -45,7 +46,7 @@ func (c *AdminController) Callback(e echo.Context) error {
 
 func (c *AdminController) Logout(e echo.Context) error {
 	if sessionId, ok := c.SessionId(e); ok {
-		_ = c.admin.Logout(e.Request().Context(), sessionId)
+		_ = c.admin.Logout(context.Background(), sessionId)
 	}
 	e.SetCookie(c.cookie.Remove(cookie.SessionId))
 	e.SetCookie(c.cookie.Remove(cookie.NameAccessToken(c.admin.ClientId())))

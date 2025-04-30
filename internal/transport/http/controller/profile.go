@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -25,12 +26,11 @@ func NewProfileController(profile *profile.UserProfile, cookie *cookie.Cookie, s
 }
 
 func (c *ProfileController) Home(e echo.Context) error {
-	ctx := e.Request().Context()
 	sessionId := e.QueryParam(cookie.SessionId)
 	userAgent := e.Request().UserAgent()
 
 	if _, err := e.Cookie(cookie.SessionId); err != nil {
-		if _, err = c.profile.SessionByIdAndAgent(ctx, sessionId, userAgent); err == nil {
+		if _, err = c.profile.SessionByIdAndAgent(context.Background(), sessionId, userAgent); err == nil {
 			e.SetCookie(c.cookie.SessionId(sessionId, false))
 		}
 	}
@@ -45,7 +45,7 @@ func (c *ProfileController) Home(e echo.Context) error {
 func (c *ProfileController) Me(e echo.Context) error {
 	userId := c.MustUserId(e)
 
-	user, err := c.profile.Info(e.Request().Context(), userId)
+	user, err := c.profile.Info(context.Background(), userId)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (c *ProfileController) UpdateUser(e echo.Context) error {
 		return err
 	}
 
-	user, err := c.profile.UpdateInfo(e.Request().Context(), userId, req.Name, req.Email)
+	user, err := c.profile.UpdateInfo(context.Background(), userId, req.Name, req.Email)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (c *ProfileController) UpdateUser(e echo.Context) error {
 func (c *ProfileController) Clients(e echo.Context) error {
 	userId := c.MustUserId(e)
 
-	clients, err := c.profile.Clients(e.Request().Context(), userId)
+	clients, err := c.profile.Clients(context.Background(), userId)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (c *ProfileController) Sessions(e echo.Context) error {
 	userId := c.MustUserId(e)
 	sessionId := c.MustSessionId(e)
 
-	sessions, err := c.profile.Sessions(e.Request().Context(), userId)
+	sessions, err := c.profile.Sessions(context.Background(), userId)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (c *ProfileController) SessionDelete(e echo.Context) error {
 	sessionId := c.MustSessionId(e)
 	id := e.Param("id")
 
-	err := c.profile.SessionDelete(e.Request().Context(), userId, id)
+	err := c.profile.SessionDelete(context.Background(), userId, id)
 	if err != nil {
 		if errors.Is(err, profile.ErrSessionNotFound) {
 			return echo.NewHTTPError(http.StatusBadRequest, "session not found").SetInternal(err)
@@ -122,7 +122,7 @@ func (c *ProfileController) UpdatePassword(e echo.Context) error {
 		return err
 	}
 
-	err := c.profile.UpdatePassword(e.Request().Context(), userId, req.OldPassword, req.NewPassword)
+	err := c.profile.UpdatePassword(context.Background(), userId, req.OldPassword, req.NewPassword)
 	if err != nil {
 		if errors.Is(err, profile.ErrInvalidPassword) {
 			return validator.NewValidateErrorWithMessage("old_password", "Пароль не верный")
@@ -134,7 +134,7 @@ func (c *ProfileController) UpdatePassword(e echo.Context) error {
 }
 
 func (c *ProfileController) Logout(e echo.Context) error {
-	_ = c.profile.Logout(e.Request().Context(), c.MustSessionId(e))
+	_ = c.profile.Logout(context.Background(), c.MustSessionId(e))
 	e.SetCookie(c.cookie.Remove(cookie.SessionId))
 	return e.NoContent(http.StatusOK)
 }
