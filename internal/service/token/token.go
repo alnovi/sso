@@ -101,27 +101,6 @@ func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, role
 	return access, nil
 }
 
-func (t *Token) RefreshToken(ctx context.Context, sessionId, clientId, userId string, notBefore time.Time, opts ...Option) (*entity.Token, error) {
-	refresh := &entity.Token{
-		Id:         uuid.NewString(),
-		Class:      entity.TokenClassRefresh,
-		Hash:       rand.Base62(entity.TokenRefreshCost),
-		SessionId:  utils.Point(sessionId),
-		UserId:     utils.Point(userId),
-		ClientId:   utils.Point(clientId),
-		NotBefore:  notBefore,
-		Expiration: notBefore.Add(entity.TokenRefreshTTL),
-	}
-
-	t.applyOptions(refresh, opts)
-
-	if err := t.repo.TokenCreate(ctx, refresh); err != nil {
-		return nil, err
-	}
-
-	return refresh, nil
-}
-
 func (t *Token) ValidateAccessToken(_ context.Context, access string) (*AccessClaims, error) {
 	access = strings.TrimPrefix(access, "Bearer ")
 	access = strings.TrimSpace(access)
@@ -149,6 +128,27 @@ func (t *Token) ValidateAccessToken(_ context.Context, access string) (*AccessCl
 	return claims, nil
 }
 
+func (t *Token) RefreshToken(ctx context.Context, sessionId, clientId, userId string, notBefore time.Time, opts ...Option) (*entity.Token, error) {
+	refresh := &entity.Token{
+		Id:         uuid.NewString(),
+		Class:      entity.TokenClassRefresh,
+		Hash:       rand.Base62(entity.TokenRefreshCost),
+		SessionId:  utils.Point(sessionId),
+		ClientId:   utils.Point(clientId),
+		UserId:     utils.Point(userId),
+		NotBefore:  notBefore,
+		Expiration: notBefore.Add(entity.TokenRefreshTTL),
+	}
+
+	t.applyOptions(refresh, opts)
+
+	if err := t.repo.TokenCreate(ctx, refresh); err != nil {
+		return nil, err
+	}
+
+	return refresh, nil
+}
+
 func (t *Token) ValidateRefreshToken(ctx context.Context, refresh string) (*entity.Token, error) {
 	refresh = strings.TrimSpace(refresh)
 
@@ -162,6 +162,31 @@ func (t *Token) ValidateRefreshToken(ctx context.Context, refresh string) (*enti
 	}
 
 	return token, nil
+}
+
+func (t *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query, ip, agent string, opts ...Option) (*entity.Token, error) {
+	forgot := &entity.Token{
+		Id:       uuid.NewString(),
+		Class:    entity.TokenClassForgot,
+		Hash:     rand.Base62(entity.TokenForgotCost),
+		ClientId: utils.Point(clientId),
+		UserId:   utils.Point(userId),
+		Payload: entity.Payload{
+			entity.PayloadQuery: query,
+			entity.PayloadIP:    ip,
+			entity.PayloadAgent: agent,
+		},
+		NotBefore:  time.Now(),
+		Expiration: time.Now().Add(time.Hour),
+	}
+
+	t.applyOptions(forgot, opts)
+
+	if err := t.repo.TokenCreate(ctx, forgot); err != nil {
+		return nil, err
+	}
+
+	return forgot, nil
 }
 
 func (t *Token) applyOptions(e any, opts []Option) {

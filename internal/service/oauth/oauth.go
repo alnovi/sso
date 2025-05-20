@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/alnovi/sso/internal/adapter/mailing"
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/service/token"
@@ -36,13 +37,14 @@ var (
 )
 
 type OAuth struct {
-	repo  *repository.Repository
-	tm    repository.Transaction
-	token *token.Token
+	repo    *repository.Repository
+	tm      repository.Transaction
+	token   *token.Token
+	mailing *mailing.Mailing
 }
 
-func NewOAuth(repo *repository.Repository, tm repository.Transaction, token *token.Token) *OAuth {
-	return &OAuth{repo: repo, tm: tm, token: token}
+func NewOAuth(repo *repository.Repository, tm repository.Transaction, token *token.Token, mailing *mailing.Mailing) *OAuth {
+	return &OAuth{repo: repo, tm: tm, token: token, mailing: mailing}
 }
 
 func (s *OAuth) AuthorizeCheckParams(ctx context.Context, inp InputAuthorizeParams) (*entity.Client, error) {
@@ -290,4 +292,75 @@ func (s *OAuth) ValidateAccessToken(ctx context.Context, token string) (*token.A
 
 func (s *OAuth) ValidateRefreshToken(ctx context.Context, token string) (*entity.Token, error) {
 	return s.token.ValidateRefreshToken(ctx, token)
+}
+
+func (s *OAuth) ForgotPassword(ctx context.Context, inp InputForgotPassword) error {
+	client, err := s.repo.ClientById(ctx, inp.ClientId)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrClientNotFound, err)
+	}
+
+	err = utils.CompareHosts(inp.RedirectUri, client.Callback)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err)
+	}
+
+	user, err := s.repo.UserByEmail(ctx, inp.Login, repository.NotDeleted())
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserNotFound, err)
+	}
+
+	forgot, err := s.token.ForgotPasswordToken(ctx, client.Id, user.Id, inp.Query, inp.IP, inp.Agent)
+	if err != nil {
+		return err
+	}
+
+	return s.mailing.ForgotPassword(ctx, user, forgot)
+}
+
+func (s *OAuth) ResetPassword(ctx context.Context, inp InputResetPassword) (*url.URL, error) {
+	var authUrl *url.URL
+	var err error
+
+	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
+		var forgotToken *entity.Token
+		var user *entity.User
+
+		forgotToken, err = s.repo.TokenByHash(ctx, inp.Hash)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrTokenNotFound, err)
+		}
+
+		if forgotToken.Class != entity.TokenClassForgot {
+			return ErrTokenNotFound
+		}
+
+		if err = s.repo.TokenDeleteById(ctx, forgotToken.Id); err != nil {
+			return fmt.Errorf("fail delete token: %s", err)
+		}
+
+		user, err = s.repo.UserById(ctx, *forgotToken.UserId)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUserNotFound, err)
+		}
+
+		user.Password, err = utils.HashPassword(inp.Password)
+		if err != nil {
+			return fmt.Errorf("fail hash password: %s", err)
+		}
+
+		err = s.repo.UserUpdate(ctx, user)
+		if err != nil {
+			return fmt.Errorf("fail change user password: %s", err)
+		}
+
+		authUrl, err = url.Parse(fmt.Sprintf("/v1/oauth/authorize?%s", forgotToken.Payload.Query()))
+		if err != nil {
+			return fmt.Errorf("can't parse query in token forgot [token_id=%s]: %s", forgotToken.Id, err)
+		}
+
+		return nil
+	})
+
+	return authUrl, err
 }

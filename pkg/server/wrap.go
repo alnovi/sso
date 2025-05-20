@@ -20,7 +20,7 @@ func (w *Wrap) Use(middlewares ...echo.MiddlewareFunc) *Wrap {
 	return w
 }
 
-func (w *Wrap) ApplyHTTP(group *echo.Group) error {
+func (w *Wrap) ApplyHTTP(group *echo.Group) {
 	if w.prefix != "" {
 		group = group.Group(w.prefix)
 	}
@@ -30,10 +30,6 @@ func (w *Wrap) ApplyHTTP(group *echo.Group) error {
 	}
 
 	for _, controller := range w.controllers {
-		if err := controller.ApplyHTTP(group); err != nil {
-			return err
-		}
+		controller.ApplyHTTP(group)
 	}
-
-	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/alnovi/sso/config"
+	"github.com/alnovi/sso/internal/adapter/mailing"
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/service/admin"
 	"github.com/alnovi/sso/internal/service/cookie"
@@ -34,6 +35,7 @@ type Provider struct {
 	db          *postgres.Client
 	repository  *repository.Repository
 	transaction repository.Transaction
+	mailing     *mailing.Mailing
 	scheduler   *scheduler.Scheduler
 	token       *token.Token
 	oauth       *oauth.OAuth
@@ -150,6 +152,25 @@ func (p *Provider) MigrationDown() {
 	utils.Must(err)
 }
 
+func (p *Provider) Mailing() *mailing.Mailing {
+	if p.mailing == nil {
+		var err error
+
+		p.mailing, err = mailing.New(
+			p.Config().Mail.Host,
+			p.Config().Mail.Port,
+		)
+
+		utils.MustMsg(err, "failed to connect to mailing service")
+
+		// TODO
+		//utils.MustMsg(p.mailing.Ping(context.Background()), "failed to ping mailing service")
+
+		p.Closer().Add(p.mailing.Close)
+	}
+	return p.mailing
+}
+
 func (p *Provider) Scheduler() *scheduler.Scheduler {
 	if p.scheduler == nil {
 		var err error
@@ -181,7 +202,7 @@ func (p *Provider) Token() *token.Token {
 
 func (p *Provider) OAuth() *oauth.OAuth {
 	if p.oauth == nil {
-		p.oauth = oauth.NewOAuth(p.Repository(), p.Transaction(), p.Token())
+		p.oauth = oauth.NewOAuth(p.Repository(), p.Transaction(), p.Token(), p.Mailing())
 	}
 	return p.oauth
 }

@@ -1,0 +1,47 @@
+services:
+
+### Postgres ##############################################
+  postgres:
+    image: postgres:16-alpine3.21
+    container_name: "${COMPOSE_PROJECT_NAME}-postgres"
+    restart: unless-stopped
+    volumes:
+      - ${DATA_PATH_HOST:-~/.sso/data}/postgres:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sso}
+      POSTGRES_USER: ${POSTGRES_USER:-developer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-developer}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+### Node #############################################
+  node:
+    image: node:24-alpine3.21
+    container_name: "${COMPOSE_PROJECT_NAME}-node"
+    restart: unless-stopped
+    working_dir: /usr/src/app
+    volumes:
+      - ./web:/usr/src/app
+#    extra_hosts:
+#      - "dockerhost:${DOCKER_HOST_IP}"
+    ports:
+      - "${WORKSPACE_BROWSERSYNC_HOST_PORT:-3000}:3000"
+      - "${WORKSPACE_BROWSERSYNC_UI_HOST_PORT:-3001}:3001"
+      - "${WORKSPACE_VUE_CLI_SERVE_HOST_PORT:-8082}:8082"
+      - "${WORKSPACE_VUE_CLI_UI_HOST_PORT:-8000}:8000"
+      - "${WORKSPACE_ANGULAR_CLI_SERVE_HOST_PORT:-4200}:4200"
+      - "${WORKSPACE_VITE_PORT:-5173}:5173"
+    tty: true
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

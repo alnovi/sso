@@ -131,7 +131,7 @@ func (c *UserController) UpdateRole(e echo.Context) error {
 	return e.NoContent(http.StatusOK)
 }
 
-func (c *UserController) ApplyHTTP(g *echo.Group) error {
+func (c *UserController) ApplyHTTP(g *echo.Group) {
 	g.GET("/users/", c.List)
 	g.GET("/users/:id/", c.Get)
 	g.GET("/users/:id/clients/", c.Clients)
@@ -140,5 +140,4 @@ func (c *UserController) ApplyHTTP(g *echo.Group) error {
 	g.DELETE("/users/:id/", c.Delete)
 	g.POST("/users/:id/restore/", c.Restore)
 	g.POST("/users/:uid/clients/:cid/", c.UpdateRole)
-	return nil
 }

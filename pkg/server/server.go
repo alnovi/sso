@@ -69,9 +69,7 @@ func WithControllers(controllers ...HttpController) Option {
 	return func(server *HttpServer) {
 		g := server.Group(server.prefix)
 		for _, controller := range controllers {
-			if err := controller.ApplyHTTP(g); err != nil {
-				panic(err)
-			}
+			controller.ApplyHTTP(g)
 		}
 	}
 }

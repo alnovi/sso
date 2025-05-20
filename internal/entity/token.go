@@ -10,6 +10,7 @@ const (
 
 	TokenCodeCost    = 50
 	TokenRefreshCost = 100
+	TokenForgotCost  = 50
 
 	TokenCodeTTL    = time.Minute
 	TokenAccessTTL  = time.Minute * 2

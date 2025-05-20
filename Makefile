@@ -28,7 +28,7 @@ swag:
 lint:
 	go tool golangci-lint run ./...
 
-## lint: статический анализ (авто-исправление)
+## lint-fix: статический анализ (авто-исправление)
 .PHONY: lint-fix
 lint-fix:
 	go tool golangci-lint run ./... --fix --timeout 650s
@@ -55,3 +55,27 @@ test-integration:
 	@go tool cover -html=./coverage.out
 	@rm ./coverage.out
 
+## dc-up: start docker containers
+.PHONY: dc-up
+dc-up:
+	docker compose up -d -t=60
+
+## dc-stop: stop docker containers
+.PHONY: dc-stop
+dc-stop:
+	docker compose stop
+
+## dc-exec: enter to node container
+.PHONY: dc-exec
+dc-exec:
+	docker compose exec node sh
+
+## dc-web-dev: start npm run dev
+.PHONY: dc-web-dev
+dc-web-dev:
+	docker compose exec -it node npm run dev
+
+## dc-web-build: start npm run build
+.PHONY: dc-web-build
+dc-web-build:
+	docker compose exec -it node npm run build

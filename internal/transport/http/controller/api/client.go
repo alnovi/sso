@@ -103,12 +103,11 @@ func (c *ClientController) Restore(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewClient(client))
 }
 
-func (c *ClientController) ApplyHTTP(g *echo.Group) error {
+func (c *ClientController) ApplyHTTP(g *echo.Group) {
 	g.GET("/clients/", c.List)
 	g.GET("/clients/:id/", c.Get)
 	g.POST("/clients/", c.Create)
 	g.PUT("/clients/:id/", c.Update)
 	g.DELETE("/clients/:id/", c.Delete)
 	g.POST("/clients/:id/restore/", c.Restore)
-	return nil
 }

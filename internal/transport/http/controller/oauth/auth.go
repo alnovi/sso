@@ -125,8 +125,7 @@ func (c *AuthController) Authorize(e echo.Context) error {
 	return e.Redirect(http.StatusFound, redirectURI.String())
 }
 
-func (c *AuthController) ApplyHTTP(g *echo.Group) error {
+func (c *AuthController) ApplyHTTP(g *echo.Group) {
 	g.GET("/authorize/", c.Form)
 	g.POST("/authorize/", c.Authorize)
-	return nil
 }

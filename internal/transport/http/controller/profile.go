@@ -139,7 +139,7 @@ func (c *ProfileController) Logout(e echo.Context) error {
 	return e.NoContent(http.StatusOK)
 }
 
-func (c *ProfileController) ApplyHTTP(g *echo.Group) error {
+func (c *ProfileController) ApplyHTTP(g *echo.Group) {
 	g.GET("/profile/", c.Home, c.session)
 	g.GET("/profile/me/", c.Me, c.session)
 	g.PUT("/profile/me/", c.UpdateUser, c.session)
@@ -148,5 +148,4 @@ func (c *ProfileController) ApplyHTTP(g *echo.Group) error {
 	g.DELETE("/profile/sessions/:id/", c.SessionDelete, c.session)
 	g.PUT("/profile/password/", c.UpdatePassword, c.session)
 	g.POST("/profile/logout/", c.Logout, c.session)
-	return nil
 }

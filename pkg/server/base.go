@@ -7,7 +7,7 @@ import (
 )
 
 type HttpController interface {
-	ApplyHTTP(group *echo.Group) error
+	ApplyHTTP(group *echo.Group)
 }
 
 func StatusText(code int) string {

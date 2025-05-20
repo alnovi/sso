@@ -36,4 +36,9 @@ jobs:
       - name: go get
         run: go get ./...
       - name: go test
-        run: go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./tests/...
+        run: go test ./... -count=1 -coverpkg=./... -coverprofile=./cover.out
+      - name: check coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          config: ./.testcoverage.yml
+

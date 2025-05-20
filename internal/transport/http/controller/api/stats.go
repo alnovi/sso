@@ -46,7 +46,6 @@ func (c *StatsController) Stats(e echo.Context) error {
 	return e.JSON(http.StatusOK, resp)
 }
 
-func (c *StatsController) ApplyHTTP(g *echo.Group) error {
+func (c *StatsController) ApplyHTTP(g *echo.Group) {
 	g.GET("/stats/", c.Stats)
-	return nil
 }

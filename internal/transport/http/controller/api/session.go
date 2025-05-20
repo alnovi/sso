@@ -54,9 +54,8 @@ func (c *SessionController) Delete(e echo.Context) error {
 	return e.NoContent(http.StatusOK)
 }
 
-func (c *SessionController) ApplyHTTP(g *echo.Group) error {
+func (c *SessionController) ApplyHTTP(g *echo.Group) {
 	g.GET("/sessions/", c.List)
 	g.GET("/sessions/:id/", c.Get)
 	g.DELETE("/sessions/:id/", c.Delete)
-	return nil
 }

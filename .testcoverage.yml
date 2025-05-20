@@ -1,0 +1,7 @@
+profile: cover.out
+threshold:
+  file: 80
+  total: 80
+exclude:
+  paths:
+    - main\.go$

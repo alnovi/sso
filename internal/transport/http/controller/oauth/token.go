@@ -81,7 +81,6 @@ func (c *TokenController) tokenByRefresh(e echo.Context) error {
 	})
 }
 
-func (c *TokenController) ApplyHTTP(g *echo.Group) error {
+func (c *TokenController) ApplyHTTP(g *echo.Group) {
 	g.POST("/token/", c.Token)
-	return nil
 }

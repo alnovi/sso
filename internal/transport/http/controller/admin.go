@@ -54,9 +54,8 @@ func (c *AdminController) Logout(e echo.Context) error {
 	return e.NoContent(http.StatusOK)
 }
 
-func (c *AdminController) ApplyHTTP(g *echo.Group) error {
+func (c *AdminController) ApplyHTTP(g *echo.Group) {
 	g.GET("/admin/*/", c.Home, c.token)
 	g.GET("/admin/callback/", c.Callback)
 	g.POST("/admin/logout/", c.Logout, c.token)
-	return nil
 }

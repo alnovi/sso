@@ -99,6 +99,7 @@ func (app *App) initControllers() {
 		server.NewWrap("/oauth", []server.HttpController{
 			oauth.NewAuthController(app.Provider.OAuth(), app.Provider.Cookie()),
 			oauth.NewTokenController(app.Provider.OAuth()),
+			oauth.NewPasswordController(app.Provider.OAuth()),
 		}...),
 		server.NewWrap("/api", []server.HttpController{
 			api.NewClientController(app.Provider.StorageClients()),
