@@ -158,7 +158,7 @@ func (t *Token) ValidateRefreshToken(ctx context.Context, refresh string) (*enti
 	}
 
 	if !token.IsActive() {
-		return nil, fmt.Errorf("%w: tiken is ", ErrTokenNotFound)
+		return nil, fmt.Errorf("%w: tiken is inactive", ErrTokenNotFound)
 	}
 
 	return token, nil
@@ -187,6 +187,21 @@ func (t *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query
 	}
 
 	return forgot, nil
+}
+
+func (t *Token) ValidateForgotToken(ctx context.Context, forgot string) (*entity.Token, error) {
+	forgot = strings.TrimSpace(forgot)
+
+	token, err := t.repo.TokenByHash(ctx, forgot, repository.Class(entity.TokenClassForgot))
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTokenNotFound, err)
+	}
+
+	if !token.IsActive() {
+		return nil, fmt.Errorf("%w: tiken is inactive", ErrTokenNotFound)
+	}
+
+	return token, nil
 }
 
 func (t *Token) applyOptions(e any, opts []Option) {

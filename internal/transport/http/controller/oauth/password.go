@@ -23,6 +23,21 @@ func NewPasswordController(oauth *oauth.OAuth) *PasswordController {
 	return &PasswordController{oauth: oauth}
 }
 
+func (c *PasswordController) FormReset(e echo.Context) error {
+	token, client, err := c.oauth.ValidateForgotToken(e.Request().Context(), e.QueryParam("hash"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Токен не найден").SetInternal(err)
+	}
+
+	resp := echo.Map{
+		"Query": token.Payload.Query(),
+		"Name":  client.Name,
+		"Icon":  client.Icon,
+	}
+
+	return e.Render(http.StatusOK, "auth.html", resp)
+}
+
 func (c *PasswordController) ForgotPassword(e echo.Context) error {
 	req := new(request.ForgotPassword)
 
@@ -43,6 +58,12 @@ func (c *PasswordController) ForgotPassword(e echo.Context) error {
 		if errors.Is(err, oauth.ErrUserNotFound) {
 			return validator.NewValidateErrorWithMessage("login", "пользователь не найден")
 		}
+		if errors.Is(err, oauth.ErrClientNotFound) {
+			return echo.NewHTTPError(http.StatusBadRequest, "Клиент не найден").SetInternal(err)
+		}
+		if errors.Is(err, oauth.ErrInvalidRedirectUri) {
+			return echo.NewHTTPError(http.StatusBadRequest, "Не валидный redirect-uri").SetInternal(err)
+		}
 		return err
 	}
 
@@ -59,14 +80,14 @@ func (c *PasswordController) ResetPassword(e echo.Context) error {
 	}
 
 	inp := oauth.InputResetPassword{
-		Hash:     e.QueryParam("hash"),
+		Hash:     req.Token,
 		Password: req.Password,
 	}
 
 	redirect, err := c.oauth.ResetPassword(e.Request().Context(), inp)
 	if err != nil {
 		if errors.Is(err, oauth.ErrTokenNotFound) {
-			return echo.NewHTTPError(http.StatusBadRequest, "token not found")
+			return echo.NewHTTPError(http.StatusBadRequest, "Токен не найден").SetInternal(err)
 		}
 		return err
 	}
@@ -80,5 +101,6 @@ func (c *PasswordController) ResetPassword(e echo.Context) error {
 
 func (c *PasswordController) ApplyHTTP(g *echo.Group) {
 	g.POST("/forgot-password/", c.ForgotPassword)
+	g.GET("/reset-password/", c.FormReset)
 	g.POST("/reset-password/", c.ResetPassword)
 }

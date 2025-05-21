@@ -294,6 +294,20 @@ func (s *OAuth) ValidateRefreshToken(ctx context.Context, token string) (*entity
 	return s.token.ValidateRefreshToken(ctx, token)
 }
 
+func (s *OAuth) ValidateForgotToken(ctx context.Context, token string) (*entity.Token, *entity.Client, error) {
+	forgotToken, err := s.token.ValidateForgotToken(ctx, token)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %s", ErrTokenNotFound, err)
+	}
+
+	client, err := s.repo.ClientById(ctx, *forgotToken.ClientId)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
+	}
+
+	return forgotToken, client, nil
+}
+
 func (s *OAuth) ForgotPassword(ctx context.Context, inp InputForgotPassword) error {
 	client, err := s.repo.ClientById(ctx, inp.ClientId)
 	if err != nil {
@@ -354,7 +368,7 @@ func (s *OAuth) ResetPassword(ctx context.Context, inp InputResetPassword) (*url
 			return fmt.Errorf("fail change user password: %s", err)
 		}
 
-		authUrl, err = url.Parse(fmt.Sprintf("/v1/oauth/authorize?%s", forgotToken.Payload.Query()))
+		authUrl, err = url.Parse(fmt.Sprintf("/oauth/authorize?%s", forgotToken.Payload.Query()))
 		if err != nil {
 			return fmt.Errorf("can't parse query in token forgot [token_id=%s]: %s", forgotToken.Id, err)
 		}

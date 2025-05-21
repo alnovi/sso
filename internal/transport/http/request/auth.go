@@ -11,6 +11,6 @@ type ForgotPassword struct {
 }
 
 type ResetPassword struct {
-	Token    string `json:"token"    validate:"required"              example:"token-hash"`
+	Token    string `json:"token" example:"token-hash"`
 	Password string `json:"password" validate:"required,gte=5,lte=24" example:"qwerty"`
 }

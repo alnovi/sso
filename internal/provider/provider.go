@@ -159,12 +159,15 @@ func (p *Provider) Mailing() *mailing.Mailing {
 		p.mailing, err = mailing.New(
 			p.Config().Mail.Host,
 			p.Config().Mail.Port,
+			mailing.WithAppHost(p.Config().App.Host),
+			mailing.WithFrom(p.Config().Mail.From, p.Config().Mail.Username),
+			mailing.WithAuthUsername(p.Config().Mail.Username),
+			mailing.WithAuthPassword(p.Config().Mail.Password),
 		)
 
 		utils.MustMsg(err, "failed to connect to mailing service")
 
-		// TODO
-		//utils.MustMsg(p.mailing.Ping(context.Background()), "failed to ping mailing service")
+		utils.MustMsg(p.mailing.Ping(context.Background()), "failed to ping mailing service")
 
 		p.Closer().Add(p.mailing.Close)
 	}

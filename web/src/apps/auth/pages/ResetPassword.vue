@@ -5,43 +5,41 @@ import {useRouter} from "vue-router"
 import {Password, User} from "@vicons/carbon";
 import {useApi} from "../../../services/api.js";
 import {config, meta, validStatus, validMsg} from "../../../services/utils.js";
-import {notifyError} from "../../../services/notify.js";
+import {notifyError, notifyInfo} from "../../../services/notify.js";
 
 const api = useApi(config('VITE_API_HOST', '/'))
 const query = meta('auth-query', config('VITE_AUTH_QUERY'))
+const hash = (new URLSearchParams(window.location.search)).get('hash')
 const router = useRouter()
 const notification = useNotification()
 
 const formRef = ref(null);
 
 const formValue = ref({
-  login: '',
   password: '',
-  remember: false,
+  passwordConfirmation: '',
 })
 
 const formError = ref({
-  login: null,
   password: null,
 })
 
-const formIsEmpty = () => {
-  return formValue.value.login.length < 5 || formValue.value.password.length < 5
+const formIsValid = () => {
+  return formValue.value.password.length >= 5 && formValue.value.password === formValue.value.passwordConfirmation
 }
 
-async function authorize() {
-  formError.value.login = null
+async function reset() {
   formError.value.password = null
 
   const data = {
-    login: formValue.value.login,
+    token: hash,
     password: formValue.value.password,
-    remember: formValue.value.remember,
   }
 
-  api.post(`oauth/authorize?${query}`, data)
+  api.post(`oauth/reset-password`, data)
     .then(res => {
-      window.location.replace(res.data.url)
+      notification.success(notifyInfo('Пароль успешно изменен'))
+      router.push(`/oauth/authorize?${query}`)
     })
     .catch(error => {
       if (error.code === 'ERR_NETWORK') {
@@ -59,31 +57,28 @@ async function authorize() {
 </script>
 
 <template>
-  <n-card title="Авторизация" bordered :segmented="{content: true, footer: 'soft'}">
+  <n-card title="Смена пароля" bordered :segmented="{content: true, footer: 'soft'}">
     <n-form :ref="formRef" :label-width="80" :model="formValue">
-      <n-form-item label="Логин" path="login" required :feedback="validMsg(formError.login, 'login', 'логин')" :validation-status="validStatus(formError.login)">
-        <n-input size="large" v-model:value="formValue.login" type="text" placeholder="Логин">
-          <template #prefix>
-            <n-icon :component="User"/>
-          </template>
-        </n-input>
-      </n-form-item>
-      <n-form-item label="Пароль" path="password" required :feedback="validMsg(formError.password, 'password', 'пароль')" :validation-status="validStatus(formError.password)">
-        <n-input size="large" v-model:value="formValue.password" type="password" show-password-on="mousedown" placeholder="Пароль">
+      <n-form-item label="Новый пароль" path="password" required :feedback="validMsg(formError.password, 'password', 'пароль')" :validation-status="validStatus(formError.password)">
+        <n-input size="large" v-model:value="formValue.password" type="password" show-password-on="mousedown" placeholder="Новый пароль">
           <template #prefix>
             <n-icon :component="Password"/>
           </template>
         </n-input>
       </n-form-item>
-      <div>
-        <n-checkbox size="large" label="Не выходить" v-model:checked="formValue.remember" />
-      </div>
+      <n-form-item label="Повторите пароль" path="password" required :feedback="validMsg(formError.password, 'password', 'пароль')" :validation-status="validStatus(formError.password)">
+        <n-input size="large" v-model:value="formValue.passwordConfirmation" type="password" show-password-on="mousedown" placeholder="Повторите пароль">
+          <template #prefix>
+            <n-icon :component="Password"/>
+          </template>
+        </n-input>
+      </n-form-item>
     </n-form>
     <template #footer>
       <n-flex justify="space-between">
-        <n-button text @click="router.push(`/oauth/forgot-password?${query}`)">Забыли свой пароль?</n-button>
-        <n-button @click="authorize" :disabled="formIsEmpty()" size="large" type="primary" style="width: 150px">
-          Войти
+        <n-button text @click="router.push(`/oauth/authorize?${query}`)">Войти с паролем</n-button>
+        <n-button @click="reset" :disabled="!formIsValid()" size="large" type="primary" style="width: 150px">
+          Сохранить
         </n-button>
       </n-flex>
     </template>

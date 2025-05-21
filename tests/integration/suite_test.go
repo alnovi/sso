@@ -95,6 +95,7 @@ func (s *TestSuite) SetupSuite() {
 func (s *TestSuite) TearDownSuite() {
 	s.Require().NoError(s.app.Provider.Closer().Close())
 	s.Require().NoError(s.pgContainer.Terminate(context.Background()))
+	s.Require().NoError(s.smtpContainer.Terminate(context.Background()))
 }
 
 func (s *TestSuite) SetupTest() {
