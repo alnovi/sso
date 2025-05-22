@@ -61,7 +61,7 @@ func (l *ContainerLogger) Printf(f string, args ...interface{}) {
 }
 
 func NewContainerLogger(format, level string) *ContainerLogger {
-	return &ContainerLogger{logger: logger.New(format, level)}
+	return &ContainerLogger{logger: logger.New(logger.WithFormat(format), logger.WithLevel(level))}
 }
 
 type TestSuite struct {

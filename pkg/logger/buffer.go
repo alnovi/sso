@@ -39,7 +39,7 @@ type Buffer struct {
 }
 
 func newBuffer() *Buffer {
-	return &Buffer{buf: make([]byte, 0, 1024)}
+	return &Buffer{buf: make([]byte, 0, 1024)} //nolint:mnd
 }
 
 func (b *Buffer) Write(p []byte) (int, error) {
@@ -74,19 +74,19 @@ func (b *Buffer) AppendQuote(s string) {
 }
 
 func (b *Buffer) AppendInt(i int64) {
-	b.buf = strconv.AppendInt(b.buf, i, 10)
+	b.buf = strconv.AppendInt(b.buf, i, 10) //nolint:mnd
 }
 
 func (b *Buffer) AppendUint(i uint64) {
-	b.buf = strconv.AppendUint(b.buf, i, 10)
+	b.buf = strconv.AppendUint(b.buf, i, 10) //nolint:mnd
 }
 
 func (b *Buffer) AppendFloat32(f float32) {
-	b.AppendFloat(float64(f), 32)
+	b.AppendFloat(float64(f), 32) //nolint:mnd
 }
 
 func (b *Buffer) AppendFloat64(f float64) {
-	b.AppendFloat(f, 64)
+	b.AppendFloat(f, 64) //nolint:mnd
 }
 
 func (b *Buffer) AppendFloat(f float64, bitSize int) {
