@@ -18,7 +18,7 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: govulncheck
-        uses: golang/govulncheck-action@v1
+        uses: Templum/govulncheck-action@v1.0.2
 
   golint:
     name: golint
