@@ -44,7 +44,6 @@ test:
 .PHONY: test-unit
 test-unit:
 	@go test -v -count=1 -coverpkg=./... -coverprofile=./coverage.out ./internal/... ./pkg/...
-	#go tool cover -func=./coverage.out
 	@go tool cover -html=./coverage.out
 	@rm ./coverage.out
 

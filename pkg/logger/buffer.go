@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
-const poolMaxBufferSize = 16 << 10
+const (
+	bufferSize        = 1024
+	poolMaxBufferSize = 16 << 10
+)
 
 type bufferPool struct {
 	pool sync.Pool
@@ -39,7 +42,7 @@ type Buffer struct {
 }
 
 func newBuffer() *Buffer {
-	return &Buffer{buf: make([]byte, 0, 1024)} //nolint:mnd
+	return &Buffer{buf: make([]byte, 0, bufferSize)}
 }
 
 func (b *Buffer) Write(p []byte) (int, error) {

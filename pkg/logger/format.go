@@ -77,6 +77,9 @@ type SourceFormatter func(buf *Buffer, src *slog.Source)
 
 func DefaultSourceFormatter(color bool) SourceFormatter {
 	return func(buf *Buffer, src *slog.Source) {
+		if src == nil {
+			return
+		}
 		dir, file := filepath.Split(src.File)
 		if color {
 			buf.AppendString(ansiFaint)

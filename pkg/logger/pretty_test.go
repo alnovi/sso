@@ -12,9 +12,43 @@ import (
 	"time"
 )
 
-var levelRegexp = regexp.MustCompile("(DBG|INF|WRN|ERR)([+-][0-9]+)?")
+var (
+	levelRegexp = regexp.MustCompile("(DBG|INF|WRN|ERR)([+-][0-9]+)?")
+)
 
-func TestHandler(t *testing.T) {
+func TestPrettyHandler(t *testing.T) {
+	bufs := make(map[string]*bytes.Buffer)
+	newHandler := func(t *testing.T) slog.Handler {
+		buf := new(bytes.Buffer)
+		bufs[t.Name()] = buf
+		return NewPrettyHandler(buf, &Options{
+			Level:        slog.LevelDebug,
+			AddSource:    true,
+			DisableColor: true,
+			ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
+				if attr.Key == slog.SourceKey {
+					return slog.String(slog.SourceKey, "")
+				}
+				return attr
+			},
+			TimeFormatter: func(buf *Buffer, t time.Time) {
+				buf.AppendTimeFormat(t, time.RFC3339)
+			},
+		})
+	}
+	result := func(t *testing.T) map[string]any {
+		buf := bufs[t.Name()]
+		m, err := parse(buf.Bytes())
+		if err != nil {
+			t.Errorf("Parse log line: %v", err)
+		}
+		return m
+	}
+
+	slogtest.Run(t, newHandler, result)
+}
+
+func TestPrettyHandler2(t *testing.T) {
 	bufs := make(map[string]*bytes.Buffer)
 	newHandler := func(t *testing.T) slog.Handler {
 		buf := new(bytes.Buffer)
