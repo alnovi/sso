@@ -1,6 +1,6 @@
 module github.com/alnovi/sso
 
-go 1.24.2
+go 1.24.3
 
 tool (
 	github.com/golangci/golangci-lint/cmd/golangci-lint
