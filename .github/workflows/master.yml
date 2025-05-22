@@ -1,22 +1,23 @@
-name: master
+name: Push on master
 
 on:
   push:
-    branches:
-      - master
+    branches: [ "master" ]
 
 jobs:
   lint:
     name: run lint
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: setup go
+
+      - name: Setup go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: golangci-lint
+
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1.6
@@ -26,15 +27,18 @@ jobs:
     name: run test
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: setup go
+
+      - name: Setup go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: go test
+
+      - name: Run go test
         run: go test ./... -count=1 -coverpkg=./... -coverprofile=./cover.out
-      - name: check coverage
+
+      - name: Check and push badge coverage
         uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.testcoverage.yml
