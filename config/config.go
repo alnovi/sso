@@ -1,5 +1,7 @@
 package config
 
+import "slices"
+
 const (
 	AppEnvironmentProduction  = "production"
 	AppEnvironmentDevelopment = "development"
@@ -19,13 +21,12 @@ type Config struct {
 }
 
 func (c *Config) IsProduction() bool {
-	return c.App.Environment == AppEnvironmentProduction
+	return c.App.Environment == AppEnvironmentProduction || !slices.Contains([]string{
+		AppEnvironmentDevelopment,
+		AppEnvironmentTesting,
+	}, c.App.Environment)
 }
 
 func (c *Config) IsDevelopment() bool {
 	return c.App.Environment == AppEnvironmentDevelopment
-}
-
-func (c *Config) IsTesting() bool {
-	return c.App.Environment == AppEnvironmentTesting
 }

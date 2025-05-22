@@ -14,13 +14,6 @@ type HttpRender struct {
 	templates *template.Template
 }
 
-func NewHttpRenderFromPath(path string) *HttpRender {
-	path = strings.Trim(path, "/")
-	path = fmt.Sprintf("%s/*", path)
-
-	return &HttpRender{templates: template.Must(template.ParseGlob(path))}
-}
-
 func NewHttpRenderFromFS(fs fs.FS, dir string) *HttpRender {
 	dir = strings.Trim(dir, "/")
 	pattern := fmt.Sprintf("%s/*", dir)

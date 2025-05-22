@@ -30,6 +30,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.37.0
 	github.com/wneessen/go-mail v0.6.2
 	golang.org/x/crypto v0.37.0
+	gotest.tools/v3 v3.5.2
 )
 
 require (

@@ -64,7 +64,10 @@ func (p *Provider) Config() *config.Config {
 
 func (p *Provider) Logger() *slog.Logger {
 	if p.logger == nil {
-		p.logger = logger.New(p.Config().Logger.Format, p.Config().Logger.Level)
+		p.logger = logger.New(
+			logger.WithFormat(p.Config().Logger.Format),
+			logger.WithLevel(p.Config().Logger.Level),
+		)
 	}
 	return p.logger
 }

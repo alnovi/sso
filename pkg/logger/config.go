@@ -1,56 +1,42 @@
 package logger
 
 import (
+	"io"
 	"log/slog"
 	"os"
 )
 
-const (
-	FormatJson       = "json"
-	FormatText       = "text"
-	FormatJsonPretty = "json-pretty"
-	FormatTextPretty = "text-pretty"
-	FormatDiscard    = "discard"
-
-	LevelDebug = "debug"
-	LevelInfo  = "info"
-	LevelWarn  = "warn"
-	LevelError = "error"
-)
-
-type Config struct {
-	Format string
-	Level  string
+type config struct {
+	format  string
+	options *Options
+	out     io.Writer
 }
 
-func (c Config) level() slog.Level {
-	switch c.Level {
-	case LevelDebug:
-		return slog.LevelDebug
-	case LevelInfo:
-		return slog.LevelInfo
-	case LevelWarn:
-		return slog.LevelWarn
-	case LevelError:
-		return slog.LevelError
-	default:
-		return slog.LevelError
+func newConfig(opts ...Option) *config {
+	cfg := &config{
+		format:  FormatJson,
+		options: &Options{Level: slog.LevelError},
+		out:     os.Stdout,
 	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	return cfg
 }
 
-func (c Config) handler(opts slog.HandlerOptions) slog.Handler {
-	switch c.Format {
+func (c *config) Handler() slog.Handler {
+	switch c.format {
 	case FormatJson:
-		return slog.NewJSONHandler(os.Stdout, &opts)
+		return slog.NewJSONHandler(c.out, c.options.ToSlogHandleOptions())
 	case FormatText:
-		return slog.NewTextHandler(os.Stdout, &opts)
-	case FormatJsonPretty:
-		return NewJsonPrettyHandler(os.Stdout, &opts)
-	case FormatTextPretty:
-		return NewTextPrettyHandler(os.Stdout, &opts)
+		return slog.NewTextHandler(c.out, c.options.ToSlogHandleOptions())
+	case FormatPretty:
+		return NewPrettyHandler(c.out, c.options)
 	case FormatDiscard:
 		return slog.DiscardHandler
 	default:
-		return slog.NewJSONHandler(os.Stdout, &opts)
+		return slog.NewJSONHandler(c.out, c.options.ToSlogHandleOptions())
 	}
 }
