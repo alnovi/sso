@@ -1,9 +1,3 @@
-<a href="#">
-	<picture>
-		<img alt="SSO Logo" src="./docs/assets/logo.png" />
-	</picture>
-</a>
-
 # Single Sign-On (SSO)
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/alnovi/sso)
