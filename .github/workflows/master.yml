@@ -16,11 +16,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false
       - name: govulncheck
         uses: golang/govulncheck-action@v1
 
-  lint:
-    name: lint
+  golint:
+    name: golint
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -29,16 +30,15 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1.6
           skip-cache: true
-          skip-pkg-cache: true
 
-
-  test:
-    name: test
+  gotest:
+    name: gotest
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -47,8 +47,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-#      - name: go get
-#        run: go get ./...
+          cache: false
       - name: go test
         run: go test ./... -count=1 -coverpkg=./... -coverprofile=./cover.out
       - name: check coverage
