@@ -127,7 +127,7 @@ func (s *TestSuite) TestHttpOAuthResetPassword() {
 			} else {
 				user, err = s.app.Provider.StorageUsers().GetById(context.Background(), s.config().UAdmin.Id)
 				s.Assert().NoError(err, MsgNotAssertError)
-				s.Assert().Truef(utils.CompareHashPassword("new-secret", user.Password), "user password is incorect")
+				s.Assert().Truef(utils.CompareHashPassword("new-secret", user.Password), "user password is failed")
 			}
 
 			for k, v := range tc.expHeader {
