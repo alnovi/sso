@@ -33,7 +33,7 @@ const (
 	TestRole           = entity.RoleManager
 	ImagePostgres      = "postgres:16-alpine"
 	ImageMailSMTP      = "mailhog/mailhog:latest"
-	LoggerFormat       = logger.FormatDiscard
+	LoggerFormat       = logger.FormatPretty
 	LoggerLevel        = logger.LevelInfo
 	MsgNotAssertCode   = "not assert code"
 	MsgNotAssertBody   = "not assert body"
@@ -116,6 +116,8 @@ func (s *TestSuite) TearDownTest() {
 }
 
 func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
+	s.Require().NoError(configure.LoadFromEnv(cfg))
+
 	cfg.App.Environment = config.AppEnvironmentTesting
 	cfg.App.Host = "http://localhost:8080"
 
@@ -134,12 +136,11 @@ func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
 	cfg.CAdmin.Secret = TestSecret
 	cfg.CAdmin.Callback = "/admin/callback"
 
-	cfg.UAdmin.Id = uuid.NewString()
 	cfg.UAdmin.Name = "User Admin"
 	cfg.UAdmin.Email = "admin@example.com"
 	cfg.UAdmin.Password = TestSecret
 
-	s.Require().NoError(configure.LoadFromEnv(cfg))
+	cfg.Normalize()
 }
 
 func (s *TestSuite) initDockerLogger(_ context.Context, cfg *config.Config) {

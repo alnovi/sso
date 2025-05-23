@@ -60,6 +60,7 @@ func (p *Provider) Config() *config.Config {
 		p.config = new(config.Config)
 		err := configure.LoadFromEnv(p.config)
 		utils.MustMsg(err, "failed to load environment variables config")
+		p.config.Normalize()
 	}
 	return p.config
 }

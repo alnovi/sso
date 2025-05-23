@@ -1,6 +1,10 @@
 package config
 
-import "slices"
+import (
+	"slices"
+
+	"github.com/google/uuid"
+)
 
 const (
 	AppEnvironmentProduction  = "production"
@@ -28,4 +32,10 @@ func (c *Config) IsProduction() bool {
 
 func (c *Config) IsDevelopment() bool {
 	return c.App.Environment == AppEnvironmentDevelopment
+}
+
+func (c *Config) Normalize() {
+	if err := uuid.Validate(c.UAdmin.Id); err != nil {
+		c.UAdmin.Id = uuid.New().String()
+	}
 }

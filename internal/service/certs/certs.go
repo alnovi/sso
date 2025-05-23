@@ -13,9 +13,12 @@ import (
 )
 
 const (
-	certsDir    = "./certs"
-	privateFile = "private.pem"
-	publicFile  = "public.pem"
+	certsDir     = "./certs"
+	certsDirPerm = 0700
+	certPerm     = 0600
+	rsaBits      = 2048
+	privateFile  = "private.pem"
+	publicFile   = "public.pem"
 )
 
 type Certs struct {
@@ -24,7 +27,7 @@ type Certs struct {
 
 func New() (*Certs, error) {
 	if _, err := os.Stat(certsDir); os.IsNotExist(err) {
-		if err = os.Mkdir(certsDir, 0755); err != nil {
+		if err = os.Mkdir(certsDir, certsDirPerm); err != nil {
 			return nil, err
 		}
 	}
@@ -65,7 +68,7 @@ func (c *Certs) filePath(name string) string {
 func (c *Certs) createRsaCerts() error {
 	buf := bytes.NewBuffer(nil)
 
-	private, err := rsa.GenerateKey(rand.Reader, 2048)
+	private, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
 		return fmt.Errorf("fail generate private.pem: %w", err)
 	}
@@ -80,7 +83,7 @@ func (c *Certs) createRsaCerts() error {
 		return fmt.Errorf("fail encode private.pem: %w", err)
 	}
 
-	if err = os.WriteFile(c.filePath(privateFile), buf.Bytes(), 0644); err != nil {
+	if err = os.WriteFile(c.filePath(privateFile), buf.Bytes(), certPerm); err != nil {
 		return fmt.Errorf("cannot write private.pem: %w", err)
 	}
 
@@ -101,7 +104,7 @@ func (c *Certs) createRsaCerts() error {
 		return fmt.Errorf("fail encode public.pem: %w", err)
 	}
 
-	if err = os.WriteFile(c.filePath(publicFile), buf.Bytes(), 0644); err != nil {
+	if err = os.WriteFile(c.filePath(publicFile), buf.Bytes(), certPerm); err != nil {
 		panic(fmt.Errorf("cannot write public.pem: %s\n", err))
 	}
 
