@@ -96,7 +96,6 @@ networks:
 | CLIENT_ADMIN_ID                |   Нет   | sso-admin         | Client ID админки                              |
 | CLIENT_ADMIN_NAME              |   Нет   | Пользователи      | Client name админки                            |
 | CLIENT_ADMIN_SECRET            |   Да    | secret            | Client secret админки                          |
-| USER_ADMIN_ID                  |   Нет   |                   | UUID v4 идентификатор админ пользователя       |
 | USER_ADMIN_NAME                |   Нет   | Admin             | Имя admin пользователя                         |
 | USER_ADMIN_EMAIL               |   Да    | admin@example.com | Логин admin пользователя                       |
 | USER_ADMIN_PASSWORD            |   Да    | secret            | Пароль admin пользователя                      |
