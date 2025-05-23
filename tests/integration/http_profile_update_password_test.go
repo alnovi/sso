@@ -41,7 +41,7 @@ func (s *TestSuite) TestHttpProfileUpdatePassword() {
 			expCode: http.StatusOK,
 		},
 		{
-			name: "Incorrect old password",
+			name: "Invalid old password",
 			data: map[string]any{
 				"old_password": s.config().UAdmin.Password,
 				"new_password": "new_password",
