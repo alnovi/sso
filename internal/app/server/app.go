@@ -31,8 +31,6 @@ type App struct {
 }
 
 func NewApp(cfg *config.Config) *App {
-	_ = os.Setenv("TZ", "UTC")
-
 	app := &App{Provider: provider.New(cfg)}
 
 	defer func() {
@@ -77,12 +75,12 @@ func (app *App) Start(ctx context.Context) {
 	go func() {
 		err := app.HttpServer.Start(app.Provider.Config().Http.Host, app.Provider.Config().Http.Port)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			app.Provider.LoggerMod("app-server").Error(err.(error).Error())
+			app.Provider.LoggerMod("http-server").Error(err.(error).Error())
 			cancel()
 		}
 	}()
 
-	app.Provider.LoggerMod("app-server").Info(fmt.Sprintf("server started, listening on port: %s", app.Provider.Config().Http.Port))
+	app.Provider.LoggerMod("http-server").Info("server started", "port", app.Provider.Config().Http.Port)
 
 	<-ctx.Done()
 }

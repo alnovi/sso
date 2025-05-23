@@ -15,7 +15,6 @@ type Config struct {
 	Database  Database  `env:",prefix=DB_"`
 	Mail      Mail      `env:",prefix=MAIL_"`
 	Scheduler Scheduler `env:",prefix=SCHEDULER_"`
-	Jwt       Jwt       `env:",prefix=JWT_"`
 	CAdmin    Client    `env:",prefix=CLIENT_ADMIN_"`
 	UAdmin    User      `env:",prefix=USER_ADMIN_"`
 }

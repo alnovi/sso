@@ -1,14 +1,8 @@
 package integration
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/asn1"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -81,7 +75,6 @@ func (s *TestSuite) SetupSuite() {
 	cfg := &config.Config{}
 
 	s.initConfig(ctx, cfg)
-	s.initRsaKeys(ctx, cfg)
 	s.initDockerLogger(ctx, cfg)
 	s.initDatabase(ctx, cfg)
 	s.initMailServer(ctx, cfg)
@@ -96,6 +89,7 @@ func (s *TestSuite) TearDownSuite() {
 	s.Require().NoError(s.app.Provider.Closer().Close())
 	s.Require().NoError(s.pgContainer.Terminate(context.Background()))
 	s.Require().NoError(s.smtpContainer.Terminate(context.Background()))
+	_ = s.app.Provider.Certs().RemoveDir()
 }
 
 func (s *TestSuite) SetupTest() {
@@ -124,7 +118,6 @@ func (s *TestSuite) TearDownTest() {
 func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
 	cfg.App.Environment = config.AppEnvironmentTesting
 	cfg.App.Host = "http://localhost:8080"
-	cfg.App.Secret = "1234567890AbCdFg"
 
 	cfg.Logger.Format = LoggerFormat
 	cfg.Logger.Level = LoggerLevel
@@ -136,13 +129,10 @@ func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
 	cfg.Mail.Username = "test@example.com"
 	cfg.Mail.Password = TestSecret
 
-	cfg.Jwt.PrivateKey = TestSecret
-	cfg.Jwt.PublicKey = TestSecret
-
 	cfg.CAdmin.Id = "sso-admin"
 	cfg.CAdmin.Name = "Client Admin"
 	cfg.CAdmin.Secret = TestSecret
-	cfg.CAdmin.Callback = "https://127.0.0.1"
+	cfg.CAdmin.Callback = "/admin/callback"
 
 	cfg.UAdmin.Id = uuid.NewString()
 	cfg.UAdmin.Name = "User Admin"
@@ -150,46 +140,6 @@ func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
 	cfg.UAdmin.Password = TestSecret
 
 	s.Require().NoError(configure.LoadFromEnv(cfg))
-}
-
-func (s *TestSuite) initRsaKeys(_ context.Context, cfg *config.Config) {
-	buf := bytes.NewBuffer(nil)
-
-	private, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		panic(fmt.Errorf("Cannot generate RSA key: %s\n", err))
-	}
-
-	privateKey := &pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(private),
-	}
-
-	err = pem.Encode(buf, privateKey)
-	if err != nil {
-		panic(fmt.Errorf("Cannot encode RSA key: %s\n", err))
-	}
-
-	cfg.Jwt.PrivateKey = buf.String()
-
-	buf = bytes.NewBuffer(nil)
-
-	public, err := asn1.Marshal(private.PublicKey)
-	if err != nil {
-		panic(fmt.Errorf("Cannot marshal RSA key: %s\n", err))
-	}
-
-	var pemKey = &pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: public,
-	}
-
-	err = pem.Encode(buf, pemKey)
-	if err != nil {
-		panic(fmt.Errorf("Cannot encode public key: %s\n", err))
-	}
-
-	cfg.Jwt.PublicKey = buf.String()
 }
 
 func (s *TestSuite) initDockerLogger(_ context.Context, cfg *config.Config) {

@@ -11,6 +11,6 @@ type CreateClient struct {
 type UpdateClient struct {
 	Name     string  `json:"name" validate:"required,min=5,max=50"`
 	Icon     *string `json:"icon" validate:"omitnil,uri,max=250"`
-	Callback string  `json:"callback" validate:"required,url,max=250"`
+	Callback string  `json:"callback" validate:"required,uri,max=250"`
 	Secret   string  `json:"secret" validate:"required,min=5,max=100"`
 }

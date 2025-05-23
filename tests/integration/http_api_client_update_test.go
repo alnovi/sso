@@ -151,7 +151,7 @@ func (s *TestSuite) TestHttpApiClientUpdate() {
 				"secret":   s.config().CAdmin.Secret,
 			},
 			expCode: http.StatusUnprocessableEntity,
-			expBody: `"callback":"callback должен быть URL"`,
+			expBody: `"callback":"callback должен быть URI"`,
 			expErr:  "Unprocessable Entity",
 		},
 		{

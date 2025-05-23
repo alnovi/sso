@@ -3,12 +3,12 @@ package provider
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/adapter/mailing"
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/service/admin"
+	"github.com/alnovi/sso/internal/service/certs"
 	"github.com/alnovi/sso/internal/service/cookie"
 	"github.com/alnovi/sso/internal/service/crontask"
 	"github.com/alnovi/sso/internal/service/oauth"
@@ -38,6 +38,7 @@ type Provider struct {
 	transaction repository.Transaction
 	mailing     *mailing.Mailing
 	scheduler   *scheduler.Scheduler
+	certs       *certs.Certs
 	token       *token.Token
 	oauth       *oauth.OAuth
 	cookie      *cookie.Cookie
@@ -198,13 +199,19 @@ func (p *Provider) Scheduler() *scheduler.Scheduler {
 	return p.scheduler
 }
 
+func (p *Provider) Certs() *certs.Certs {
+	if p.certs == nil {
+		var err error
+		p.certs, err = certs.New()
+		utils.MustMsg(err, "failed init certs service")
+	}
+	return p.certs
+}
+
 func (p *Provider) Token() *token.Token {
 	if p.token == nil {
-		privateKey, err := os.ReadFile(p.Config().Jwt.PrivatePath())
-		utils.MustMsg(err, "fail read private cert")
-
-		publicKey, err := os.ReadFile(p.Config().Jwt.PublicPath())
-		utils.MustMsg(err, "fail read private cert")
+		publicKey, privateKey, err := p.Certs().RsaKeys()
+		utils.MustMsg(err, "failed get rsa keys")
 
 		p.token, err = token.New(privateKey, publicKey, p.Repository())
 		utils.MustMsg(err, "failed to init Token service")
