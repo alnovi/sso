@@ -18,6 +18,8 @@ ENV APP_VERSION=$APP_VERSION
 ENV APP_ENVIRONMENT=production
 ENV HTTP_PORT=8080
 
+VOLUME /app/certs
+
 WORKDIR /app
 
 COPY --from=builder /app/app .

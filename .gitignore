@@ -1,5 +1,6 @@
 .idea
 .vscode
-.env
 .DS_Store
+.env
+certs
 TODO.md

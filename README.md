@@ -9,5 +9,3 @@
 [![GitHub Release](https://img.shields.io/github/v/release/alnovi/sso)](https://github.com/alnovi/sso/releases)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/alnovi/sso/master.yml)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/alnovi/sso/deploy.yml?label=deploy)
-
-Добавить папку для JWT токенов

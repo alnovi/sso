@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/adapter/mailing"
@@ -199,8 +200,13 @@ func (p *Provider) Scheduler() *scheduler.Scheduler {
 
 func (p *Provider) Token() *token.Token {
 	if p.token == nil {
-		var err error
-		p.token, err = token.New([]byte(p.Config().Jwt.PrivateKey), []byte(p.Config().Jwt.PublicKey), p.Repository())
+		privateKey, err := os.ReadFile(p.Config().Jwt.PrivatePath())
+		utils.MustMsg(err, "fail read private cert")
+
+		publicKey, err := os.ReadFile(p.Config().Jwt.PublicPath())
+		utils.MustMsg(err, "fail read private cert")
+
+		p.token, err = token.New(privateKey, publicKey, p.Repository())
 		utils.MustMsg(err, "failed to init Token service")
 	}
 	return p.token
