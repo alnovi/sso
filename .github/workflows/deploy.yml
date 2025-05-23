@@ -12,7 +12,7 @@ jobs:
   build-and-push-image:
     name: Build and push image
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+#    if: github.ref == 'refs/heads/master'
     permissions:
       contents: read
       packages: write
