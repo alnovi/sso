@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/service/admin"
 	"github.com/alnovi/sso/internal/service/cookie"
 )
@@ -29,7 +30,8 @@ func (c *AdminController) Home(e echo.Context) error {
 		}
 		return e.Redirect(http.StatusFound, authorizeURL)
 	}
-	return e.Render(http.StatusOK, "admin.html", nil)
+
+	return e.Render(http.StatusOK, "admin.html", echo.Map{"Version": config.Version})
 }
 
 func (c *AdminController) Callback(e echo.Context) error {

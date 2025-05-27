@@ -12,7 +12,7 @@ const (
 	AppEnvironmentTesting     = "testing"
 )
 
-var version = "v0.0.0"
+var Version = "v0.0.0"
 
 type Config struct {
 	App       App       `env:",prefix=APP_"`
@@ -23,10 +23,6 @@ type Config struct {
 	Scheduler Scheduler `env:",prefix=SCHEDULER_"`
 	CAdmin    Client    `env:",prefix=CLIENT_ADMIN_"`
 	UAdmin    User      `env:",prefix=USER_ADMIN_"`
-}
-
-func (c *Config) Version() string {
-	return version
 }
 
 func (c *Config) IsProduction() bool {
