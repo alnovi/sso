@@ -31,7 +31,7 @@ func (s *Roles) ClientRoleByUserId(ctx context.Context, userId string) ([]*entit
 		clientIds = append(clientIds, role.ClientId)
 	}
 
-	clients, err := s.repo.ClientByIds(ctx, clientIds, repository.OrderAsc("name"))
+	clients, err := s.repo.Clients(ctx, repository.OrderAsc("name"), repository.NotDeleted())
 	if err != nil {
 		return nil, err
 	}

@@ -13,11 +13,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-sso}
       POSTGRES_USER: ${POSTGRES_USER:-developer}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-developer}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - backend
 
@@ -29,8 +24,6 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./web:/usr/src/app
-#    extra_hosts:
-#      - "dockerhost:${DOCKER_HOST_IP}"
     ports:
       - "${WORKSPACE_BROWSERSYNC_HOST_PORT:-3000}:3000"
       - "${WORKSPACE_BROWSERSYNC_UI_HOST_PORT:-3001}:3001"
