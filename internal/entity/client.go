@@ -16,5 +16,5 @@ type Client struct {
 
 type ClientRole struct {
 	*Client `db:""`
-	Role    string
+	Role    *string
 }

@@ -18,8 +18,7 @@ func NewRoles(repo *repository.Repository, tm repository.Transaction) *Roles {
 }
 
 func (s *Roles) ClientRoleByUserId(ctx context.Context, userId string) ([]*entity.ClientRole, error) {
-	mapClientRole := make(map[string]string)
-	clientIds := make([]string, 0)
+	mapClientRole := make(map[string]*string)
 
 	roles, err := s.repo.RoleByUserId(ctx, userId)
 	if err != nil {
@@ -27,8 +26,7 @@ func (s *Roles) ClientRoleByUserId(ctx context.Context, userId string) ([]*entit
 	}
 
 	for _, role := range roles {
-		mapClientRole[role.ClientId] = role.Role
-		clientIds = append(clientIds, role.ClientId)
+		mapClientRole[role.ClientId] = &role.Role
 	}
 
 	clients, err := s.repo.Clients(ctx, repository.OrderAsc("name"), repository.NotDeleted())

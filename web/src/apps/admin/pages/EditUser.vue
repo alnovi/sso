@@ -6,6 +6,7 @@ import {useApi} from "../../../services/api.js";
 import {config, validMsg, validStatus} from "../../../services/utils.js";
 import {notifyError, notifyInfo} from "../../../services/notify.js";
 import {Checkmark, Close} from "@vicons/carbon";
+import moment from "moment/moment.js";
 
 const props = defineProps({id: String})
 
@@ -100,7 +101,20 @@ const loadUser = async () => {
 const loadClients = async () => {
   api.get(`/api/users/${props.id}/clients`)
     .then(res => {
-      clients.value = res.data
+      clients.value = Array.from(res.data || []).map((client) => {
+        return {
+          "id": client.id,
+          "name": client.name,
+          "icon": client.icon || '/public/app.png',
+          "secret": client.secret,
+          "callback": client.callback,
+          "is_system": client.is_system,
+          "created_at": moment(client.created_at).format("DD.MM.YYYY HH:mm"),
+          "updated_at": moment(client.updated_at).format("DD.MM.YYYY HH:mm"),
+          "deleted_at": client.deleted_at ? moment(client.deleted_at).format("DD.MM.YYYY HH:mm") : null,
+          "role": client.role,
+        }
+      })
     })
     .catch(err => {
       if (!!err.response.data && !!err.response.data.error) {

@@ -40,7 +40,7 @@ func NewProfileClient(client *entity.ClientRole) *ProfileClient {
 		Name:     client.Name,
 		Icon:     client.Icon,
 		Callback: client.Callback,
-		Role:     client.Role,
+		Role:     *client.Role,
 	}
 }
 

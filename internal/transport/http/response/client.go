@@ -41,7 +41,7 @@ func NewClients(clients []*entity.Client) []*Client {
 
 type ClientRole struct {
 	*Client
-	Role string `json:"role"`
+	Role *string `json:"role"`
 }
 
 func NewClientRole(client *entity.ClientRole) *ClientRole {

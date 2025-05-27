@@ -61,7 +61,7 @@ func (s *UserProfile) UpdateInfo(ctx context.Context, userId, name, email string
 }
 
 func (s *UserProfile) Clients(ctx context.Context, userId string) ([]*entity.ClientRole, error) {
-	mapClientRole := make(map[string]string)
+	mapClientRole := make(map[string]*string)
 	clientIds := make([]string, 0)
 
 	roles, err := s.repo.RoleByUserId(ctx, userId)
@@ -70,7 +70,7 @@ func (s *UserProfile) Clients(ctx context.Context, userId string) ([]*entity.Cli
 	}
 
 	for _, role := range roles {
-		mapClientRole[role.ClientId] = role.Role
+		mapClientRole[role.ClientId] = &role.Role
 		clientIds = append(clientIds, role.ClientId)
 	}
 
