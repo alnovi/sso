@@ -4,16 +4,14 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"time"
 
 	"github.com/alnovi/sso/internal/entity"
-	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/internal/transport/http/controller"
 	"github.com/alnovi/sso/internal/transport/http/middleware"
 )
 
 func (s *TestSuite) TestHttpAdminLogout() {
-	session, access, refresh, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin, token.WithAccessExpiresAt(time.Now()))
+	session, access, refresh, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
 	testCase := struct {
