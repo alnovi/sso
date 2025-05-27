@@ -33,7 +33,7 @@ const (
 	TestRole           = entity.RoleManager
 	ImagePostgres      = "postgres:16-alpine"
 	ImageMailSMTP      = "mailhog/mailhog:latest"
-	LoggerFormat       = logger.FormatPretty
+	LoggerFormat       = logger.FormatDiscard
 	LoggerLevel        = logger.LevelInfo
 	MsgNotAssertCode   = "not assert code"
 	MsgNotAssertBody   = "not assert body"
