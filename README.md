@@ -30,7 +30,7 @@ services:
     image: ghcr.io/alnovi/sso:latest
     restart: unless-stopped
     volumes:
-      - ~/.sso/data/certs:/app/certs:ro
+      - ~/.sso/data/certs:/app/certs:rw
     ports:
       - "8080:8080"
     environment:
