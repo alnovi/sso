@@ -66,7 +66,7 @@ func (t *Token) CodeToken(ctx context.Context, sessionId, clientId, userId strin
 	return token, nil
 }
 
-func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, role string, opts ...Option) (*entity.Token, error) {
+func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, userName, role string, opts ...Option) (*entity.Token, error) {
 	now := time.Now()
 
 	claims := AccessClaims{
@@ -77,6 +77,7 @@ func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, role
 		Session: sessionId,
 		Client:  clientId,
 		User:    userId,
+		Name:    userName,
 		Role:    role,
 	}
 

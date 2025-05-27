@@ -175,6 +175,7 @@ func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.
 	}
 
 	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
+		var user *entity.User
 		var role *entity.Role
 
 		code, err = s.repo.TokenByHash(ctx, inp.Code, repository.Class(entity.TokenClassCode), repository.ForUpdate())
@@ -194,6 +195,11 @@ func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.
 			return ErrTokenNotFound
 		}
 
+		user, err = s.repo.UserById(ctx, *code.UserId, repository.NotDeleted())
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUserNotFound, err)
+		}
+
 		if err = s.repo.SessionUpdateDateById(ctx, *code.SessionId); err != nil {
 			return err
 		}
@@ -202,12 +208,12 @@ func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.
 			return err
 		}
 
-		role, err = s.repo.Role(ctx, client.Id, *code.UserId)
+		role, err = s.repo.Role(ctx, client.Id, user.Id)
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrForbidden, err)
 		}
 
-		accessToken, err = s.token.AccessToken(ctx, *code.SessionId, client.Id, *code.UserId, role.Role)
+		accessToken, err = s.token.AccessToken(ctx, *code.SessionId, client.Id, user.Id, user.Name, role.Role)
 		if err != nil {
 			return err
 		}
@@ -234,6 +240,7 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 	}
 
 	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
+		var user *entity.User
 		var role *entity.Role
 
 		refresh, err = s.repo.TokenByHash(ctx, inp.Refresh, repository.Class(entity.TokenClassRefresh), repository.ForUpdate())
@@ -261,12 +268,17 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 			return err
 		}
 
-		role, err = s.repo.Role(ctx, client.Id, *refresh.UserId)
+		user, err = s.repo.UserById(ctx, *refresh.UserId, repository.NotDeleted())
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUserNotFound, err)
+		}
+
+		role, err = s.repo.Role(ctx, client.Id, user.Id)
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrForbidden, err)
 		}
 
-		accessToken, err = s.token.AccessToken(ctx, *refresh.SessionId, client.Id, *refresh.UserId, role.Role)
+		accessToken, err = s.token.AccessToken(ctx, *refresh.SessionId, client.Id, user.Id, user.Name, role.Role)
 		if err != nil {
 			return err
 		}
