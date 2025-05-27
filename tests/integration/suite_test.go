@@ -294,7 +294,7 @@ func (s *TestSuite) accessTokens(clientId, userId, role string, opts ...token.Op
 		return
 	}
 
-	if access, err = s.app.Provider.Token().AccessToken(context.Background(), session.Id, clientId, userId, role, opts...); err != nil {
+	if access, err = s.app.Provider.Token().AccessToken(context.Background(), session.Id, clientId, userId, "User name", role, opts...); err != nil {
 		return
 	}
 

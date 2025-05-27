@@ -6,28 +6,14 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/internal/transport/http/controller"
 	"github.com/alnovi/sso/internal/transport/http/middleware"
 )
 
 func (s *TestSuite) TestHttpAdminLogout() {
-	session := &entity.Session{
-		Id:     uuid.NewString(),
-		UserId: s.config().UAdmin.Id,
-		Ip:     TestIP,
-		Agent:  TestAgent,
-	}
-
-	err := s.app.Provider.Repository().SessionCreate(context.Background(), session)
-	s.Require().NoError(err)
-
-	access, err := s.app.Provider.Token().AccessToken(context.Background(), session.Id, s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
-	s.Require().NoError(err)
-
-	refresh, err := s.app.Provider.Token().RefreshToken(context.Background(), session.Id, s.config().CAdmin.Id, s.config().UAdmin.Id, time.Now())
+	session, access, refresh, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin, token.WithAccessExpiresAt(time.Now()))
 	s.Require().NoError(err)
 
 	testCase := struct {

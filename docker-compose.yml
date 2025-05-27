@@ -20,6 +20,7 @@ services:
   node:
     image: node:24-alpine3.21
     container_name: "${COMPOSE_PROJECT_NAME}-node"
+    user: "${UID:-1000}:${GID:-1000}"
     restart: unless-stopped
     working_dir: /usr/src/app
     volumes:
