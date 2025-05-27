@@ -10,7 +10,7 @@ WORKDIR /app
 COPY . .
 
 RUN go mod download
-RUN go build -mod=mod -a -installsuffix cgo -ldflags="-s -w -X 'main.version=$APP_VERSION'" -o ./app ./cmd/server/main.go
+RUN go build -mod=mod -a -installsuffix cgo -ldflags="-s -w -X 'github.com/alnovi/sso/config.Version=$APP_VERSION'" -o ./app ./cmd/server/main.go
 
 FROM alpine:3.21
 

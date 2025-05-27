@@ -84,7 +84,7 @@ func (app *App) Start(ctx context.Context) {
 	app.Provider.LoggerMod("http-server").Info("server started",
 		slog.String("host", app.Provider.Config().Http.Host),
 		slog.String("port", app.Provider.Config().Http.Port),
-		slog.String("version", app.Provider.Config().Version()),
+		slog.String("version", config.Version),
 	)
 
 	<-ctx.Done()
@@ -136,7 +136,7 @@ func (app *App) initHTTPServer() {
 }
 
 func (app *App) initSwag() {
-	docs.SwaggerInfo.Version = app.Provider.Config().Version()
+	docs.SwaggerInfo.Version = config.Version
 	docs.SwaggerInfo.Host = app.Provider.Config().App.Host
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/service/cookie"
 	"github.com/alnovi/sso/internal/service/oauth"
 	"github.com/alnovi/sso/internal/transport/http/controller"
@@ -70,9 +71,10 @@ func (c *AuthController) Form(e echo.Context) error {
 	}
 
 	resp := echo.Map{
-		"Query": e.Request().URL.RawQuery,
-		"Name":  client.Name,
-		"Icon":  client.Icon,
+		"Version": config.Version,
+		"Query":   e.Request().URL.RawQuery,
+		"Name":    client.Name,
+		"Icon":    client.Icon,
 	}
 
 	return e.Render(http.StatusOK, "auth.html", resp)
