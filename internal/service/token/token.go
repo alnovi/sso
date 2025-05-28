@@ -29,20 +29,18 @@ type Token struct {
 	repo       *repository.Repository
 }
 
-func New(prvKey, pubKey []byte, repo *repository.Repository) (*Token, error) {
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(prvKey)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidPrivateKey, err)
+func New(prvKey *rsa.PrivateKey, pubKey *rsa.PublicKey, repo *repository.Repository) (*Token, error) {
+	if prvKey == nil {
+		return nil, fmt.Errorf("%w: key is nil", ErrInvalidPrivateKey)
 	}
 
-	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(pubKey)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidPublicKey, err)
+	if pubKey == nil {
+		return nil, fmt.Errorf("%w: key is nil", ErrInvalidPublicKey)
 	}
 
 	return &Token{
-		privateKey: privateKey,
-		publicKey:  publicKey,
+		privateKey: prvKey,
+		publicKey:  pubKey,
 		repo:       repo,
 	}, nil
 }

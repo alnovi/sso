@@ -100,6 +100,7 @@ func (app *App) initControllers() {
 		controller.NewProfileController(app.Provider.Profile(), app.Provider.Cookie(), mdwAuthSession),
 		controller.NewAdminController(app.Provider.Admin(), app.Provider.Cookie(), mdwAdminToken),
 		server.NewWrap("/oauth", []server.HttpController{
+			oauth.NewCertsController(app.Provider.Certs()),
 			oauth.NewAuthController(app.Provider.OAuth(), app.Provider.Cookie()),
 			oauth.NewTokenController(app.Provider.OAuth()),
 			oauth.NewPasswordController(app.Provider.OAuth()),
