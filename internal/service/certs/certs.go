@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -34,31 +36,65 @@ func New() (*Certs, error) {
 	return &Certs{dir: certsDir}, nil
 }
 
-func (c *Certs) RsaKeys() (public, private []byte, err error) {
-	_, pubErr := os.Stat(c.filePath(publicFile))
-	_, prvErr := os.Stat(c.filePath(privateFile))
-
-	if os.IsNotExist(pubErr) || os.IsNotExist(prvErr) {
-		if err = c.createRsaCerts(); err != nil {
-			return nil, nil, fmt.Errorf("fail create rsa certs %w", err)
-		}
+func (c *Certs) RsaKeys() (*rsa.PublicKey, *rsa.PrivateKey, error) {
+	if err := c.initCerts(); err != nil {
+		return nil, nil, err
 	}
 
-	pubKey, err := os.ReadFile(c.filePath(publicFile))
+	pubKey, err := c.RsaPublicKey()
 	if err != nil {
-		return nil, nil, fmt.Errorf("fail read public rsa cert %w", err)
+		return nil, nil, err
 	}
 
-	prvKey, err := os.ReadFile(c.filePath(privateFile))
+	prvKey, err := c.RsaPrivateKey()
 	if err != nil {
-		return nil, nil, fmt.Errorf("fail read private rsa cert %w", err)
+		return nil, nil, err
 	}
 
 	return pubKey, prvKey, nil
 }
 
+func (c *Certs) RsaPublicKey() (*rsa.PublicKey, error) {
+	pubKey, err := os.ReadFile(c.filePath(publicFile))
+	if err != nil {
+		return nil, fmt.Errorf("fail read public rsa cert %w", err)
+	}
+	return jwt.ParseRSAPublicKeyFromPEM(pubKey)
+	//return x509.ParsePKCS1PublicKey(pubKey)
+}
+
+func (c *Certs) RsaPrivateKey() (*rsa.PrivateKey, error) {
+	prvKey, err := os.ReadFile(c.filePath(privateFile))
+	if err != nil {
+		return nil, fmt.Errorf("fail read private rsa cert %w", err)
+	}
+	return jwt.ParseRSAPrivateKeyFromPEM(prvKey)
+	//return x509.ParsePKCS1PrivateKey(prvKey)
+}
+
+func (c *Certs) JWKPublicKey() (*JWK, error) {
+	key, err := c.RsaPublicKey()
+	if err != nil {
+		return nil, err
+	}
+	return NewJwk(key), nil
+}
+
 func (c *Certs) RemoveDir() error {
 	return os.RemoveAll(c.dir)
+}
+
+func (c *Certs) initCerts() error {
+	_, pubErr := os.Stat(c.filePath(publicFile))
+	_, prvErr := os.Stat(c.filePath(privateFile))
+
+	if os.IsNotExist(pubErr) || os.IsNotExist(prvErr) {
+		if err := c.createRsaCerts(); err != nil {
+			return fmt.Errorf("fail create rsa certs %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (c *Certs) filePath(name string) string {
