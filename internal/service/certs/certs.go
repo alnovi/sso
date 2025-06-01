@@ -6,8 +6,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 
@@ -24,7 +26,9 @@ const (
 )
 
 type Certs struct {
-	dir string
+	dir     string
+	public  *rsa.PublicKey
+	private *rsa.PrivateKey
 }
 
 func New() (*Certs, error) {
@@ -33,20 +37,19 @@ func New() (*Certs, error) {
 			return nil, err
 		}
 	}
-	return &Certs{dir: certsDir}, nil
+
+	certs := &Certs{dir: certsDir}
+
+	return certs, certs.initCerts()
 }
 
-func (c *Certs) RsaKeys() (*rsa.PublicKey, *rsa.PrivateKey, error) {
-	if err := c.initCerts(); err != nil {
-		return nil, nil, err
-	}
-
-	pubKey, err := c.RsaPublicKey()
+func (c *Certs) Keys() (*rsa.PublicKey, *rsa.PrivateKey, error) {
+	pubKey, err := c.PublicKey()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	prvKey, err := c.RsaPrivateKey()
+	prvKey, err := c.PrivateKey()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -54,34 +57,71 @@ func (c *Certs) RsaKeys() (*rsa.PublicKey, *rsa.PrivateKey, error) {
 	return pubKey, prvKey, nil
 }
 
-func (c *Certs) RsaPublicKey() (*rsa.PublicKey, error) {
+func (c *Certs) PublicKey() (*rsa.PublicKey, error) {
+	if c.public != nil {
+		return c.public, nil
+	}
+
 	pubKey, err := os.ReadFile(c.filePath(publicFile))
 	if err != nil {
 		return nil, fmt.Errorf("fail read public rsa cert %w", err)
 	}
-	return jwt.ParseRSAPublicKeyFromPEM(pubKey)
-	//return x509.ParsePKCS1PublicKey(pubKey)
+
+	c.public, err = jwt.ParseRSAPublicKeyFromPEM(pubKey)
+
+	return c.public, err
 }
 
-func (c *Certs) RsaPrivateKey() (*rsa.PrivateKey, error) {
+func (c *Certs) PrivateKey() (*rsa.PrivateKey, error) {
+	if c.private != nil {
+		return c.private, nil
+	}
+
 	prvKey, err := os.ReadFile(c.filePath(privateFile))
 	if err != nil {
 		return nil, fmt.Errorf("fail read private rsa cert %w", err)
 	}
-	return jwt.ParseRSAPrivateKeyFromPEM(prvKey)
-	//return x509.ParsePKCS1PrivateKey(prvKey)
+
+	c.private, err = jwt.ParseRSAPrivateKeyFromPEM(prvKey)
+
+	return c.private, err
 }
 
-func (c *Certs) JWKPublicKey() (*JWK, error) {
-	key, err := c.RsaPublicKey()
+func (c *Certs) PublicJWK() (*JWK, error) {
+	key, err := c.PublicKey()
 	if err != nil {
 		return nil, err
 	}
 	return NewJwk(key), nil
 }
 
+func (c *Certs) PublicByJWK(jwk *JWK) (*rsa.PublicKey, error) {
+	if jwk == nil {
+		return nil, fmt.Errorf("jwk is nil")
+	}
+
+	n, err := c.base64ToBigInt(jwk.N)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := c.base64ToBigInt(jwk.E)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rsa.PublicKey{N: n, E: int(e.Int64())}, nil
+}
+
 func (c *Certs) RemoveDir() error {
-	return os.RemoveAll(c.dir)
+	err := os.RemoveAll(c.dir)
+	if err != nil {
+		return err
+	}
+
+	c.public = nil
+	c.private = nil
+	return nil
 }
 
 func (c *Certs) initCerts() error {
@@ -145,4 +185,9 @@ func (c *Certs) createRsaCerts() error {
 	}
 
 	return nil
+}
+
+func (c *Certs) base64ToBigInt(val string) (*big.Int, error) {
+	b, err := base64.URLEncoding.DecodeString(val)
+	return new(big.Int).SetBytes(b), err
 }

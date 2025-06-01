@@ -36,6 +36,20 @@ services:
     networks:
       - backend
 
+### Jaeger ################################################
+  jaeger:
+    image: jaegertracing/all-in-one:1.69.0
+    container_name: "${COMPOSE_PROJECT_NAME}-jaeger"
+    restart: unless-stopped
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "16686:16686"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    networks:
+      - backend
+
 networks:
   backend:
     driver: bridge

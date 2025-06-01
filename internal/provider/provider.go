@@ -4,9 +4,16 @@ import (
 	"context"
 	"log/slog"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/semconv/v1.30.0"
+
 	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/adapter/mailing"
 	"github.com/alnovi/sso/internal/adapter/repository"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/internal/service/admin"
 	"github.com/alnovi/sso/internal/service/certs"
 	"github.com/alnovi/sso/internal/service/cookie"
@@ -31,6 +38,7 @@ import (
 type Provider struct {
 	config      *config.Config
 	logger      *slog.Logger
+	tracer      *trace.TracerProvider
 	closer      *closer.Closer
 	validator   *validator.EchoValidator
 	db          *postgres.Client
@@ -87,6 +95,49 @@ func (p *Provider) Closer() *closer.Closer {
 		p.closer = closer.New(p.Config().App.Shutdown)
 	}
 	return p.closer
+}
+
+func (p *Provider) Tracer() *trace.TracerProvider {
+	if p.tracer == nil {
+		ctx := context.Background()
+
+		if !p.Config().Trace.Enable || p.Config().Trace.ExportAddr == "" {
+			p.tracer = trace.NewTracerProvider()
+			return p.tracer
+		}
+
+		if p.Config().Trace.ServiceName != "" {
+			helper.TraceServiceName = p.Config().Trace.ServiceName
+		}
+
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{},
+			propagation.Baggage{},
+		))
+
+		exporter, err := helper.NewGrpcExporter(ctx, p.Config().Trace.ExportAddr)
+		utils.MustMsg(err, "failed to create tracer exporter")
+
+		resourceOptions := []resource.Option{
+			resource.WithAttributes(semconv.ServiceName(helper.TraceServiceName)),
+			resource.WithHost(),
+			resource.WithTelemetrySDK(),
+		}
+
+		resources, err := resource.New(ctx, resourceOptions...)
+		utils.MustMsg(err, "failed to create tracer resources")
+
+		p.tracer = trace.NewTracerProvider(
+			trace.WithSampler(trace.AlwaysSample()),
+			trace.WithBatcher(exporter, trace.WithBatchTimeout(p.Config().Trace.BatchTimeout)),
+			trace.WithResource(resources),
+		)
+
+		otel.SetTracerProvider(p.tracer)
+
+		p.Closer().Add(p.tracer.Shutdown)
+	}
+	return p.tracer
 }
 
 func (p *Provider) Validator() *validator.EchoValidator {
@@ -211,7 +262,7 @@ func (p *Provider) Certs() *certs.Certs {
 
 func (p *Provider) Token() *token.Token {
 	if p.token == nil {
-		publicKey, privateKey, err := p.Certs().RsaKeys()
+		publicKey, privateKey, err := p.Certs().Keys()
 		utils.MustMsg(err, "failed get rsa keys")
 
 		p.token, err = token.New(privateKey, publicKey, p.Repository())

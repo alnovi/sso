@@ -9,8 +9,10 @@ import (
 	"strconv"
 
 	"github.com/wneessen/go-mail"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 )
 
 //go:embed messages/*.html
@@ -59,6 +61,12 @@ func (m *Mailing) Close(_ context.Context) error {
 }
 
 func (m *Mailing) ForgotPassword(ctx context.Context, user *entity.User, token *entity.Token) error {
+	ctx, span := helper.SpanStart(ctx, "Mailing.ForgotPassword", helper.SpanAttr(
+		attribute.String("user.id", user.Id),
+		attribute.String("user.email", user.Email),
+	))
+	defer span.End()
+
 	data := struct {
 		UserName   string
 		UserEmail  string
@@ -75,7 +83,12 @@ func (m *Mailing) ForgotPassword(ctx context.Context, user *entity.User, token *
 		Agent:      token.Payload.Agent(),
 	}
 
-	return m.sentMsg(ctx, user.Email, "Восстановление доступа", "forgot_password.html", data)
+	err := m.sentMsg(ctx, user.Email, "Восстановление доступа", "forgot_password.html", data)
+	if err != nil {
+		helper.SpanError(span, err)
+	}
+
+	return err
 }
 
 func (m *Mailing) sentMsg(ctx context.Context, email, subject, tmpl string, data any) error {

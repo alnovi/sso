@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/alnovi/sso/internal/adapter/repository"
+	"github.com/alnovi/sso/internal/helper"
 )
 
 type Stats struct {
@@ -15,13 +16,31 @@ func NewStats(repo *repository.Repository) *Stats {
 }
 
 func (s *Stats) UserCount(ctx context.Context) (int, error) {
-	return s.repo.UsersCount(ctx, repository.NotDeleted())
+	ctx, span := helper.SpanStart(ctx, "Stats.UserCount")
+	defer span.End()
+
+	count, err := s.repo.UsersCount(ctx, repository.NotDeleted())
+	helper.SpanError(span, err)
+
+	return count, err
 }
 
 func (s *Stats) ClientCount(ctx context.Context) (int, error) {
-	return s.repo.ClientsCount(ctx, repository.NotDeleted())
+	ctx, span := helper.SpanStart(ctx, "Stats.ClientCount")
+	defer span.End()
+
+	count, err := s.repo.ClientsCount(ctx, repository.NotDeleted())
+	helper.SpanError(span, err)
+
+	return count, err
 }
 
 func (s *Stats) SessionCount(ctx context.Context) (int, error) {
-	return s.repo.SessionsCount(ctx)
+	ctx, span := helper.SpanStart(ctx, "Stats.SessionCount")
+	defer span.End()
+
+	count, err := s.repo.SessionsCount(ctx)
+	helper.SpanError(span, err)
+
+	return count, err
 }

@@ -3,8 +3,11 @@ package storage
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/pkg/utils"
 )
 
@@ -18,8 +21,12 @@ func NewSessions(repo *repository.Repository, tm repository.Transaction) *Sessio
 }
 
 func (s *Sessions) List(ctx context.Context) ([]*entity.SessionUser, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageSessions.List")
+	defer span.End()
+
 	session, err := s.repo.Sessions(ctx, repository.OrderDesc("updated_at"))
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -29,6 +36,7 @@ func (s *Sessions) List(ctx context.Context) ([]*entity.SessionUser, error) {
 
 	users, err := s.repo.UserByIds(ctx, userIds)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -46,13 +54,20 @@ func (s *Sessions) List(ctx context.Context) ([]*entity.SessionUser, error) {
 }
 
 func (s *Sessions) GetById(ctx context.Context, id string) (*entity.SessionUser, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageSessions.GetById", helper.SpanAttr(
+		attribute.String("session.id", id),
+	))
+	defer span.End()
+
 	session, err := s.repo.SessionById(ctx, id)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
 	user, err := s.repo.UserById(ctx, session.UserId)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -60,5 +75,13 @@ func (s *Sessions) GetById(ctx context.Context, id string) (*entity.SessionUser,
 }
 
 func (s *Sessions) DeleteById(ctx context.Context, id string) error {
-	return s.repo.SessionDeleteById(ctx, id)
+	ctx, span := helper.SpanStart(ctx, "StorageSessions.DeleteById", helper.SpanAttr(
+		attribute.String("session.id", id),
+	))
+	defer span.End()
+
+	err := s.repo.SessionDeleteById(ctx, id)
+	helper.SpanError(span, err)
+
+	return err
 }

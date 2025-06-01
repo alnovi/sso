@@ -19,7 +19,7 @@ func NewCertsController(certs *certs.Certs) *CertsController {
 }
 
 func (c *CertsController) Certs(e echo.Context) error {
-	jwk, err := c.certs.JWKPublicKey()
+	jwk, err := c.certs.PublicJWK()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error generate JWK").SetInternal(err)
 	}

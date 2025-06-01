@@ -33,6 +33,7 @@ type App struct {
 
 func NewApp(cfg *config.Config) *App {
 	app := &App{Provider: provider.New(cfg)}
+	app.Provider.Tracer()
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -126,6 +127,7 @@ func (app *App) initHTTPServer() {
 	)
 
 	app.HttpServer.Pre(middleware.TrailingSlash())
+	app.HttpServer.Use(middleware.Tracer())
 	app.HttpServer.Use(middleware.RequestLogger(app.Provider.LoggerMod("http-request")))
 
 	app.HttpServer.FileFS("/favicon.png/", "public/sso.png", web.StaticFS)

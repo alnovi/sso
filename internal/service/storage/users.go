@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/pkg/utils"
 )
 
@@ -23,16 +26,37 @@ func NewUsers(repo *repository.Repository, tm repository.Transaction) *Users {
 }
 
 func (s *Users) All(ctx context.Context) ([]*entity.User, error) {
-	return s.repo.Users(ctx, repository.OrderAsc("name"))
+	ctx, span := helper.SpanStart(ctx, "StorageUsers.All")
+	defer span.End()
+
+	users, err := s.repo.Users(ctx, repository.OrderAsc("name"))
+	helper.SpanError(span, err)
+
+	return users, err
 }
 
 func (s *Users) GetById(ctx context.Context, id string) (*entity.User, error) {
-	return s.repo.UserById(ctx, id)
+	ctx, span := helper.SpanStart(ctx, "StorageUsers.GetById", helper.SpanAttr(
+		attribute.String("user.id", id),
+	))
+	defer span.End()
+
+	user, err := s.repo.UserById(ctx, id)
+	helper.SpanError(span, err)
+
+	return user, err
 }
 
 func (s *Users) Create(ctx context.Context, inp InputUserCreate) (*entity.User, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageUsers.Create", helper.SpanAttr(
+		attribute.String("user.email", inp.Email),
+		attribute.String("user.name", inp.Name),
+	))
+	defer span.End()
+
 	password, err := utils.HashPassword(inp.Password)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -42,14 +66,23 @@ func (s *Users) Create(ctx context.Context, inp InputUserCreate) (*entity.User, 
 		Password: password,
 	}
 
-	err = s.repo.UserCreate(ctx, user)
+	err = s.checkErr(s.repo.UserCreate(ctx, user))
+	helper.SpanError(span, err)
 
-	return user, s.checkErr(err)
+	return user, err
 }
 
 func (s *Users) Update(ctx context.Context, inp InputUserUpdate) (*entity.User, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageUsers.Update", helper.SpanAttr(
+		attribute.String("user.id", inp.Id),
+		attribute.String("user.email", inp.Email),
+		attribute.String("user.name", inp.Name),
+	))
+	defer span.End()
+
 	user, err := s.GetById(ctx, inp.Id)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -59,18 +92,26 @@ func (s *Users) Update(ctx context.Context, inp InputUserUpdate) (*entity.User, 
 	if inp.Password != nil {
 		user.Password, err = utils.HashPassword(*inp.Password)
 		if err != nil {
+			helper.SpanError(span, err)
 			return nil, err
 		}
 	}
 
-	err = s.repo.UserUpdate(ctx, user)
+	err = s.checkErr(s.repo.UserUpdate(ctx, user))
+	helper.SpanError(span, err)
 
-	return user, s.checkErr(err)
+	return user, err
 }
 
 func (s *Users) Delete(ctx context.Context, id string) (*entity.User, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageUsers.Delete", helper.SpanAttr(
+		attribute.String("user.id", id),
+	))
+	defer span.End()
+
 	user, err := s.repo.UserById(ctx, id)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -80,18 +121,29 @@ func (s *Users) Delete(ctx context.Context, id string) (*entity.User, error) {
 		err = s.repo.UserDeleteForce(ctx, user)
 	}
 
+	helper.SpanError(span, err)
+
 	return user, err
 }
 
 func (s *Users) Restore(ctx context.Context, id string) (*entity.User, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageUsers.Restore", helper.SpanAttr(
+		attribute.String("user.id", id),
+	))
+	defer span.End()
+
 	user, err := s.repo.UserById(ctx, id, repository.IsNotNull("deleted_at"))
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
 	user.DeletedAt = nil
 
-	return user, s.repo.UserUpdate(ctx, user)
+	err = s.repo.UserUpdate(ctx, user)
+	helper.SpanError(span, err)
+
+	return user, err
 }
 
 func (s *Users) checkErr(err error) error {

@@ -13,6 +13,7 @@ import (
 
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/pkg/rand"
 	"github.com/alnovi/sso/pkg/utils"
 )
@@ -46,6 +47,9 @@ func New(prvKey *rsa.PrivateKey, pubKey *rsa.PublicKey, repo *repository.Reposit
 }
 
 func (t *Token) CodeToken(ctx context.Context, sessionId, clientId, userId string) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Token.CodeToken")
+	defer span.End()
+
 	token := &entity.Token{
 		Id:         uuid.NewString(),
 		Class:      entity.TokenClassCode,
@@ -58,13 +62,17 @@ func (t *Token) CodeToken(ctx context.Context, sessionId, clientId, userId strin
 	}
 
 	if err := t.repo.TokenCreate(ctx, token); err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
 	return token, nil
 }
 
-func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, userName, role string, opts ...Option) (*entity.Token, error) {
+func (t *Token) AccessToken(ctx context.Context, sessionId, clientId, userId, userName, role string, opts ...Option) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Token.AccessToken")
+	defer span.End()
+
 	now := time.Now()
 
 	claims := AccessClaims{
@@ -83,6 +91,7 @@ func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, user
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(t.privateKey)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("could not sign jwt access token: %w", err))
 		return nil, fmt.Errorf("could not sign jwt access token: %w", err)
 	}
 
@@ -101,6 +110,9 @@ func (t *Token) AccessToken(_ context.Context, sessionId, clientId, userId, user
 }
 
 func (t *Token) ValidateAccessToken(_ context.Context, access string) (*AccessClaims, error) {
+	_, span := helper.SpanStart(context.Background(), "Token.ValidateAccessToken")
+	defer span.End()
+
 	access = strings.TrimPrefix(access, "Bearer ")
 	access = strings.TrimSpace(access)
 
@@ -112,15 +124,18 @@ func (t *Token) ValidateAccessToken(_ context.Context, access string) (*AccessCl
 	})
 
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
 	if token == nil {
+		helper.SpanError(span, errors.New("invalid token"))
 		return nil, errors.New("invalid token")
 	}
 
 	claims, ok := token.Claims.(*AccessClaims)
 	if !ok {
+		helper.SpanError(span, errors.New("invalid token"))
 		return nil, errors.New("invalid token")
 	}
 
@@ -128,6 +143,9 @@ func (t *Token) ValidateAccessToken(_ context.Context, access string) (*AccessCl
 }
 
 func (t *Token) RefreshToken(ctx context.Context, sessionId, clientId, userId string, notBefore time.Time, opts ...Option) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Token.RefreshToken")
+	defer span.End()
+
 	refresh := &entity.Token{
 		Id:         uuid.NewString(),
 		Class:      entity.TokenClassRefresh,
@@ -142,6 +160,7 @@ func (t *Token) RefreshToken(ctx context.Context, sessionId, clientId, userId st
 	t.applyOptions(refresh, opts)
 
 	if err := t.repo.TokenCreate(ctx, refresh); err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -149,14 +168,19 @@ func (t *Token) RefreshToken(ctx context.Context, sessionId, clientId, userId st
 }
 
 func (t *Token) ValidateRefreshToken(ctx context.Context, refresh string) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Token.ValidateRefreshToken")
+	defer span.End()
+
 	refresh = strings.TrimSpace(refresh)
 
 	token, err := t.repo.TokenByHash(ctx, refresh, repository.Class(entity.TokenClassRefresh))
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrTokenNotFound, err))
 		return nil, fmt.Errorf("%w: %s", ErrTokenNotFound, err)
 	}
 
 	if !token.IsActive() {
+		helper.SpanError(span, fmt.Errorf("%w: tiken is inactive", ErrTokenNotFound))
 		return nil, fmt.Errorf("%w: tiken is inactive", ErrTokenNotFound)
 	}
 
@@ -164,6 +188,9 @@ func (t *Token) ValidateRefreshToken(ctx context.Context, refresh string) (*enti
 }
 
 func (t *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query, ip, agent string, opts ...Option) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Token.ForgotPasswordToken")
+	defer span.End()
+
 	forgot := &entity.Token{
 		Id:       uuid.NewString(),
 		Class:    entity.TokenClassForgot,
@@ -182,6 +209,7 @@ func (t *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query
 	t.applyOptions(forgot, opts)
 
 	if err := t.repo.TokenCreate(ctx, forgot); err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -189,14 +217,19 @@ func (t *Token) ForgotPasswordToken(ctx context.Context, clientId, userId, query
 }
 
 func (t *Token) ValidateForgotToken(ctx context.Context, forgot string) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Token.ValidateForgotToken")
+	defer span.End()
+
 	forgot = strings.TrimSpace(forgot)
 
 	token, err := t.repo.TokenByHash(ctx, forgot, repository.Class(entity.TokenClassForgot))
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrTokenNotFound, err))
 		return nil, fmt.Errorf("%w: %s", ErrTokenNotFound, err)
 	}
 
 	if !token.IsActive() {
+		helper.SpanError(span, fmt.Errorf("%w: tiken is inactive", ErrTokenNotFound))
 		return nil, fmt.Errorf("%w: tiken is inactive", ErrTokenNotFound)
 	}
 

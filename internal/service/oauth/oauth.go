@@ -12,6 +12,7 @@ import (
 	"github.com/alnovi/sso/internal/adapter/mailing"
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/internal/service/token"
 	"github.com/alnovi/sso/pkg/utils"
 )
@@ -48,17 +49,23 @@ func NewOAuth(repo *repository.Repository, tm repository.Transaction, token *tok
 }
 
 func (s *OAuth) AuthorizeCheckParams(ctx context.Context, inp InputAuthorizeParams) (*entity.Client, error) {
+	ctx, span := helper.SpanStart(ctx, "OAuth.AuthorizeCheckParams")
+	defer span.End()
+
 	if !slices.Contains(responseTypes, inp.ResponseType) {
+		helper.SpanError(span, ErrInvalidResponseType)
 		return nil, ErrInvalidResponseType
 	}
 
 	client, err := s.repo.ClientById(ctx, inp.ClientId)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
 	err = utils.CompareHosts(inp.RedirectUri, client.Callback)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err))
 		return nil, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err)
 	}
 
@@ -69,26 +76,34 @@ func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthorizeByCode) (
 	var session *entity.Session
 	var code *entity.Token
 
+	ctx, span := helper.SpanStart(ctx, "OAuth.AuthorizeByCode")
+	defer span.End()
+
 	if !slices.Contains(responseTypes, inp.ResponseType) {
+		helper.SpanError(span, ErrInvalidResponseType)
 		return nil, nil, nil, ErrInvalidResponseType
 	}
 
 	client, err := s.repo.ClientById(ctx, inp.ClientId)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
 	err = utils.CompareHosts(inp.RedirectUri, client.Callback)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err))
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err)
 	}
 
 	user, err := s.repo.UserByEmail(ctx, inp.Login, repository.NotDeleted())
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrUserNotFound, err))
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrUserNotFound, err)
 	}
 
 	if !utils.CompareHashPassword(inp.Password, user.Password) {
+		helper.SpanError(span, ErrInvalidUserPassword)
 		return nil, nil, nil, ErrInvalidUserPassword
 	}
 
@@ -118,6 +133,7 @@ func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthorizeByCode) (
 	})
 
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, nil, nil, err
 	}
 
@@ -131,27 +147,35 @@ func (s *OAuth) AuthorizeByCode(ctx context.Context, inp InputAuthorizeByCode) (
 }
 
 func (s *OAuth) AuthorizeBySession(ctx context.Context, inp InputAuthorizeBySession) (*entity.Client, *entity.Token, *url.URL, error) {
+	ctx, span := helper.SpanStart(ctx, "OAuth.AuthorizeBySession")
+	defer span.End()
+
 	if !slices.Contains(responseTypes, inp.ResponseType) {
+		helper.SpanError(span, ErrInvalidResponseType)
 		return nil, nil, nil, ErrInvalidResponseType
 	}
 
 	client, err := s.repo.ClientById(ctx, inp.ClientId)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
 	err = utils.CompareHosts(inp.RedirectUri, client.Callback)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err))
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err)
 	}
 
 	session, err := s.repo.SessionById(ctx, inp.SessionId)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrSessionNotFound, err))
 		return nil, nil, nil, fmt.Errorf("%w: %s", ErrSessionNotFound, err)
 	}
 
 	code, err := s.token.CodeToken(ctx, session.Id, client.Id, session.UserId)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, nil, nil, err
 	}
 
@@ -165,12 +189,16 @@ func (s *OAuth) AuthorizeBySession(ctx context.Context, inp InputAuthorizeBySess
 }
 
 func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.Token, *entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "OAuth.TokenByCode")
+	defer span.End()
+
 	var code *entity.Token
 	var accessToken *entity.Token
 	var refreshToken *entity.Token
 
 	client, err := s.repo.ClientById(ctx, inp.ClientId, repository.Secret(inp.ClientSecret), repository.NotDeleted())
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
@@ -226,6 +254,8 @@ func (s *OAuth) TokenByCode(ctx context.Context, inp InputTokenByCode) (*entity.
 		return nil
 	})
 
+	helper.SpanError(span, err)
+
 	return accessToken, refreshToken, err
 }
 
@@ -234,8 +264,12 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 	var accessToken *entity.Token
 	var refreshToken *entity.Token
 
+	ctx, span := helper.SpanStart(ctx, "OAuth.TokenByRefresh")
+	defer span.End()
+
 	client, err := s.repo.ClientById(ctx, inp.ClientId, repository.Secret(inp.ClientSecret), repository.NotDeleted())
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
@@ -291,29 +325,47 @@ func (s *OAuth) TokenByRefresh(ctx context.Context, inp InputTokenByRefresh) (*e
 		return nil
 	})
 
+	helper.SpanError(span, err)
+
 	return accessToken, refreshToken, err
 }
 
 func (s *OAuth) ValidateAccessToken(ctx context.Context, token string) (*token.AccessClaims, error) {
+	ctx, span := helper.SpanStart(ctx, "OAuth.ValidateAccessToken")
+	defer span.End()
+
 	claims, err := s.token.ValidateAccessToken(ctx, token)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrUnauthorized, err))
 		return nil, fmt.Errorf("%w: %s", ErrUnauthorized, err)
 	}
+
 	return claims, nil
 }
 
 func (s *OAuth) ValidateRefreshToken(ctx context.Context, token string) (*entity.Token, error) {
-	return s.token.ValidateRefreshToken(ctx, token)
+	ctx, span := helper.SpanStart(ctx, "OAuth.ValidateRefreshToken")
+	defer span.End()
+
+	refresh, err := s.token.ValidateRefreshToken(ctx, token)
+	helper.SpanError(span, err)
+
+	return refresh, err
 }
 
 func (s *OAuth) ValidateForgotToken(ctx context.Context, token string) (*entity.Token, *entity.Client, error) {
+	ctx, span := helper.SpanStart(ctx, "OAuth.ValidateForgotToken")
+	defer span.End()
+
 	forgotToken, err := s.token.ValidateForgotToken(ctx, token)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrTokenNotFound, err))
 		return nil, nil, fmt.Errorf("%w: %s", ErrTokenNotFound, err)
 	}
 
 	client, err := s.repo.ClientById(ctx, *forgotToken.ClientId)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
@@ -321,32 +373,47 @@ func (s *OAuth) ValidateForgotToken(ctx context.Context, token string) (*entity.
 }
 
 func (s *OAuth) ForgotPassword(ctx context.Context, inp InputForgotPassword) error {
+	ctx, span := helper.SpanStart(ctx, "OAuth.ForgotPassword")
+	defer span.End()
+
 	client, err := s.repo.ClientById(ctx, inp.ClientId)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrClientNotFound, err))
 		return fmt.Errorf("%w: %s", ErrClientNotFound, err)
 	}
 
 	err = utils.CompareHosts(inp.RedirectUri, client.Callback)
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err))
 		return fmt.Errorf("%w: %s", ErrInvalidRedirectUri, err)
 	}
 
 	user, err := s.repo.UserByEmail(ctx, inp.Login, repository.NotDeleted())
 	if err != nil {
+		helper.SpanError(span, fmt.Errorf("%w: %s", ErrUserNotFound, err))
 		return fmt.Errorf("%w: %s", ErrUserNotFound, err)
 	}
 
 	forgot, err := s.token.ForgotPasswordToken(ctx, client.Id, user.Id, inp.Query, inp.IP, inp.Agent)
 	if err != nil {
+		helper.SpanError(span, err)
 		return err
 	}
 
-	return s.mailing.ForgotPassword(ctx, user, forgot)
+	if err = s.mailing.ForgotPassword(ctx, user, forgot); err != nil {
+		helper.SpanError(span, err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *OAuth) ResetPassword(ctx context.Context, inp InputResetPassword) (*url.URL, error) {
 	var authUrl *url.URL
 	var err error
+
+	ctx, span := helper.SpanStart(ctx, "OAuth.ResetPassword")
+	defer span.End()
 
 	err = s.tm.ReadCommitted(ctx, func(ctx context.Context) error {
 		var forgotToken *entity.Token
@@ -387,6 +454,8 @@ func (s *OAuth) ResetPassword(ctx context.Context, inp InputResetPassword) (*url
 
 		return nil
 	})
+
+	helper.SpanError(span, err)
 
 	return authUrl, err
 }

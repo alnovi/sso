@@ -3,8 +3,11 @@ package storage
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/pkg/utils"
 )
 
@@ -18,10 +21,16 @@ func NewRoles(repo *repository.Repository, tm repository.Transaction) *Roles {
 }
 
 func (s *Roles) ClientRoleByUserId(ctx context.Context, userId string) ([]*entity.ClientRole, error) {
+	ctx, span := helper.SpanStart(ctx, "StorageRoles.ClientRoleByUserId", helper.SpanAttr(
+		attribute.String("user.id", userId),
+	))
+	defer span.End()
+
 	mapClientRole := make(map[string]*string)
 
 	roles, err := s.repo.RoleByUserId(ctx, userId)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -31,6 +40,7 @@ func (s *Roles) ClientRoleByUserId(ctx context.Context, userId string) ([]*entit
 
 	clients, err := s.repo.Clients(ctx, repository.OrderAsc("name"), repository.NotDeleted())
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
@@ -43,13 +53,23 @@ func (s *Roles) ClientRoleByUserId(ctx context.Context, userId string) ([]*entit
 }
 
 func (s *Roles) Update(ctx context.Context, clientId, userId string, userRole *string) error {
+	ctx, span := helper.SpanStart(ctx, "StorageRoles.Update", helper.SpanAttr(
+		attribute.String("client.id", clientId),
+		attribute.String("user.id", userId),
+	))
+	defer span.End()
+
 	if userRole == nil || *userRole == "" {
-		return s.repo.RoleDelete(ctx, clientId, userId)
+		err := s.repo.RoleDelete(ctx, clientId, userId)
+		helper.SpanError(span, err)
+		return err
 	}
 
-	return s.repo.RoleUpdate(ctx, &entity.Role{
+	err := s.repo.RoleUpdate(ctx, &entity.Role{
 		ClientId: clientId,
 		UserId:   userId,
 		Role:     *userRole,
 	})
+	helper.SpanError(span, err)
+	return err
 }

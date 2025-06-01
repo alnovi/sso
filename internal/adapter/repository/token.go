@@ -6,8 +6,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 )
 
 const TokenTable = "tokens"
@@ -27,6 +29,9 @@ var tokenFields = []string{
 }
 
 func (r *Repository) TokenByHash(ctx context.Context, hash string, opts ...OptSelect) (*entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Repository.TokenByHash")
+	defer span.End()
+
 	token := new(entity.Token)
 
 	builder := r.qb.Select(tokenFields...).
@@ -37,15 +42,23 @@ func (r *Repository) TokenByHash(ctx context.Context, hash string, opts ...OptSe
 
 	query, args, err := builder.ToSql()
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, err
 	}
 
-	err = r.db.ScanQueryRow(ctx, token, query, args...)
+	err = r.checkErr(r.db.ScanQueryRow(ctx, token, query, args...))
+	if err != nil {
+		helper.SpanError(span, err)
+		return nil, err
+	}
 
-	return token, r.checkErr(err)
+	return token, nil
 }
 
 func (r *Repository) TokenCreate(ctx context.Context, token *entity.Token) error {
+	ctx, span := helper.SpanStart(ctx, "Repository.TokenCreate")
+	defer span.End()
+
 	now := time.Now()
 
 	if token.Id == "" {
@@ -72,6 +85,8 @@ func (r *Repository) TokenCreate(ctx context.Context, token *entity.Token) error
 		token.Payload = entity.Payload{}
 	}
 
+	span.SetAttributes(attribute.String("token.id", token.Id))
+
 	builder := r.qb.Insert(TokenTable).
 		Columns(tokenFields...).
 		Values(
@@ -90,29 +105,50 @@ func (r *Repository) TokenCreate(ctx context.Context, token *entity.Token) error
 
 	query, args, err := builder.ToSql()
 	if err != nil {
+		helper.SpanError(span, err)
 		return err
 	}
 
 	_, err = r.db.Exec(ctx, query, args...)
+	if err = r.checkErr(err); err != nil {
+		helper.SpanError(span, err)
+		return err
+	}
 
-	return r.checkErr(err)
+	return nil
 }
 
 func (r *Repository) TokenDeleteById(ctx context.Context, id string) error {
+	ctx, span := helper.SpanStart(ctx, "Repository.TokenDeleteById", helper.SpanAttr(
+		attribute.String("token.id", id),
+	))
+	defer span.End()
+
 	builder := r.qb.Delete(TokenTable).Where(sq.Eq{"id": id})
 
 	query, args, err := builder.ToSql()
 	if err != nil {
+		helper.SpanError(span, err)
 		return err
 	}
 
 	_, err = r.db.Exec(ctx, query, args...)
+	if err = r.checkErr(err); err != nil {
+		helper.SpanError(span, err)
+		return err
+	}
 
-	return r.checkErr(err)
+	return nil
 }
 
 func (r *Repository) TokenDeleteBySessionId(ctx context.Context, sessionId string) error {
+	ctx, span := helper.SpanStart(ctx, "Repository.TokenDeleteBySessionId", helper.SpanAttr(
+		attribute.String("session.id", sessionId),
+	))
+	defer span.End()
+
 	if err := r.checkUUID(sessionId); err != nil {
+		helper.SpanError(span, err)
 		return err
 	}
 
@@ -120,25 +156,38 @@ func (r *Repository) TokenDeleteBySessionId(ctx context.Context, sessionId strin
 
 	query, args, err := builder.ToSql()
 	if err != nil {
+		helper.SpanError(span, err)
 		return err
 	}
 
 	_, err = r.db.Exec(ctx, query, args...)
+	if err = r.checkErr(err); err != nil {
+		helper.SpanError(span, err)
+		return err
+	}
 
-	return r.checkErr(err)
+	return nil
 }
 
 func (r *Repository) TokenDeleteExpired(ctx context.Context) error {
+	ctx, span := helper.SpanStart(ctx, "Repository.TokenDeleteExpired")
+	defer span.End()
+
 	builder := r.qb.Delete(TokenTable).
 		Where(sq.NotEq{"expiration": nil}).
 		Where(sq.Lt{"expiration": time.Now()})
 
 	query, args, err := builder.ToSql()
 	if err != nil {
+		helper.SpanError(span, err)
 		return err
 	}
 
 	_, err = r.db.Exec(ctx, query, args...)
+	if err = r.checkErr(err); err != nil {
+		helper.SpanError(span, err)
+		return err
+	}
 
-	return r.checkErr(err)
+	return nil
 }

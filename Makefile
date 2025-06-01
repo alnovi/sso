@@ -54,9 +54,14 @@ test-integration:
 	@go tool cover -html=./coverage.out
 	@rm ./coverage.out
 
-## dc-up: start docker containers
+## dc-up: start docker containers (postgres и jaeger)
 .PHONY: dc-up
 dc-up:
+	docker compose up -d -t=60 postgres jaeger
+
+## dc-up-full: start docker containers (all)
+.PHONY: dc-up-all
+dc-up-all:
 	docker compose up -d -t=60
 
 ## dc-stop: stop docker containers

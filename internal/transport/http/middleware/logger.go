@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func RequestLogger(logger *slog.Logger) func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -22,6 +23,8 @@ func RequestLogger(logger *slog.Logger) func(next echo.HandlerFunc) echo.Handler
 		LogError:        true,
 		LogResponseSize: true,
 		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
+			ctx := c.Request().Context()
+
 			isFavicon := strings.Contains(values.URI, "favicon")
 			isAssets := strings.Contains(values.URI, "assets")
 			isPublic := strings.Contains(values.URI, "public")
@@ -39,6 +42,7 @@ func RequestLogger(logger *slog.Logger) func(next echo.HandlerFunc) echo.Handler
 				slog.String("uri", strings.TrimRight(values.URI, "/")),
 				slog.Int("status", values.Status),
 				slog.Int64("response_size", values.ResponseSize),
+				slog.String("trace_id", trace.SpanContextFromContext(ctx).TraceID().String()),
 			)
 
 			if values.Error != nil {

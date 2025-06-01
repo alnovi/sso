@@ -4,8 +4,11 @@ import (
 	"context"
 	"net/url"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
+	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/internal/service/oauth"
 )
 
@@ -25,8 +28,12 @@ func (s *Admin) ClientId() string {
 }
 
 func (s *Admin) AuthorizeURI(ctx context.Context) (string, error) {
+	ctx, span := helper.SpanStart(ctx, "Admin.AuthorizeURI")
+	defer span.End()
+
 	client, err := s.repo.ClientById(ctx, s.clientId)
 	if err != nil {
+		helper.SpanError(span, err)
 		return "", err
 	}
 
@@ -45,8 +52,14 @@ func (s *Admin) AuthorizeURI(ctx context.Context) (string, error) {
 }
 
 func (s *Admin) TokenByCode(ctx context.Context, code string) (*entity.Token, *entity.Token, error) {
+	ctx, span := helper.SpanStart(ctx, "Admin.TokenByCode", helper.SpanAttr(
+		attribute.String("code", code),
+	))
+	defer span.End()
+
 	client, err := s.repo.ClientById(ctx, s.clientId)
 	if err != nil {
+		helper.SpanError(span, err)
 		return nil, nil, err
 	}
 
@@ -56,9 +69,23 @@ func (s *Admin) TokenByCode(ctx context.Context, code string) (*entity.Token, *e
 		Code:         code,
 	}
 
-	return s.oauth.TokenByCode(ctx, inp)
+	access, refresh, err := s.oauth.TokenByCode(ctx, inp)
+	if err != nil {
+		helper.SpanError(span, err)
+		return nil, nil, err
+	}
+
+	return access, refresh, nil
 }
 
 func (s *Admin) Logout(ctx context.Context, sessionId string) error {
-	return s.repo.SessionDeleteById(ctx, sessionId)
+	ctx, span := helper.SpanStart(ctx, "Admin.Logout", helper.SpanAttr(
+		attribute.String("session.id", sessionId),
+	))
+	defer span.End()
+
+	err := s.repo.SessionDeleteById(ctx, sessionId)
+	helper.SpanError(span, err)
+
+	return err
 }
