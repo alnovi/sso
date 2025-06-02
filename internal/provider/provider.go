@@ -9,6 +9,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/semconv/v1.30.0"
+	itrace "go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/alnovi/sso/config"
 	"github.com/alnovi/sso/internal/adapter/mailing"
@@ -38,7 +40,7 @@ import (
 type Provider struct {
 	config      *config.Config
 	logger      *slog.Logger
-	tracer      *trace.TracerProvider
+	tracer      itrace.TracerProvider
 	closer      *closer.Closer
 	validator   *validator.EchoValidator
 	db          *postgres.Client
@@ -97,17 +99,14 @@ func (p *Provider) Closer() *closer.Closer {
 	return p.closer
 }
 
-func (p *Provider) Tracer() *trace.TracerProvider {
+func (p *Provider) Tracer() itrace.TracerProvider {
 	if p.tracer == nil {
 		ctx := context.Background()
 
 		if !p.Config().Trace.Enable || p.Config().Trace.ExportAddr == "" {
-			p.tracer = trace.NewTracerProvider()
+			p.tracer = noop.NewTracerProvider()
+			otel.SetTracerProvider(p.tracer)
 			return p.tracer
-		}
-
-		if p.Config().Trace.ServiceName != "" {
-			helper.TraceServiceName = p.Config().Trace.ServiceName
 		}
 
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
@@ -127,15 +126,17 @@ func (p *Provider) Tracer() *trace.TracerProvider {
 		resources, err := resource.New(ctx, resourceOptions...)
 		utils.MustMsg(err, "failed to create tracer resources")
 
-		p.tracer = trace.NewTracerProvider(
+		tp := trace.NewTracerProvider(
 			trace.WithSampler(trace.AlwaysSample()),
 			trace.WithBatcher(exporter, trace.WithBatchTimeout(p.Config().Trace.BatchTimeout)),
 			trace.WithResource(resources),
 		)
 
-		otel.SetTracerProvider(p.tracer)
+		p.Closer().Add(tp.Shutdown)
 
-		p.Closer().Add(p.tracer.Shutdown)
+		p.tracer = tp
+
+		otel.SetTracerProvider(p.tracer)
 	}
 	return p.tracer
 }

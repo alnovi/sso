@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var TraceServiceName = "SSO"
+const TraceServiceName = "SSO"
 
 func NewGrpcExporter(ctx context.Context, endpoint string) (*otlptrace.Exporter, error) {
 	return otlptrace.New(ctx, otlptracegrpc.NewClient(

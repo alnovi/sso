@@ -42,8 +42,11 @@ func RequestLogger(logger *slog.Logger) func(next echo.HandlerFunc) echo.Handler
 				slog.String("uri", strings.TrimRight(values.URI, "/")),
 				slog.Int("status", values.Status),
 				slog.Int64("response_size", values.ResponseSize),
-				slog.String("trace_id", trace.SpanContextFromContext(ctx).TraceID().String()),
 			)
+
+			if cpanCtx := trace.SpanContextFromContext(ctx); cpanCtx.HasTraceID() {
+				log = log.With(slog.String("trace_id", cpanCtx.TraceID().String()))
+			}
 
 			if values.Error != nil {
 				log.Error(values.Error.Error())
