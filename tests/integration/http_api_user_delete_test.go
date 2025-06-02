@@ -17,9 +17,6 @@ func (s *TestSuite) TestHttpApiUserDelete() {
 	_, access, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
-	_, access2, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name    string
 		user    string
@@ -53,27 +50,6 @@ func (s *TestSuite) TestHttpApiUserDelete() {
 			},
 			expCode: http.StatusNotFound,
 			expErr:  "no results",
-		},
-		{
-			name: "Unauthorized",
-			user: TestUser.Id,
-			headers: map[string]string{
-				"User-Agent":   TestAgent,
-				"Content-Type": "application/json",
-			},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		},
-		{
-			name: "Forbidden",
-			user: TestUser.Id,
-			headers: map[string]string{
-				"User-Agent":    TestAgent,
-				"Content-Type":  "application/json",
-				"Authorization": access2.Hash,
-			},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
 		},
 	}
 

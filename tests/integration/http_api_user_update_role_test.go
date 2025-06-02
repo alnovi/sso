@@ -18,9 +18,6 @@ func (s *TestSuite) TestHttpApiUserUpdateRole() {
 	_, access, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
-	_, access2, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name    string
 		user    string
@@ -71,31 +68,6 @@ func (s *TestSuite) TestHttpApiUserUpdateRole() {
 				`"role":"role должен быть одним из [guest user manager admin]"`,
 			},
 			expErr: "Unprocessable Entity",
-		},
-		{
-			name:   "Unauthorized",
-			user:   TestUser.Id,
-			client: TestClient.Id,
-			role:   utils.Point(entity.RoleGuest),
-			headers: map[string]string{
-				"User-Agent":   TestAgent,
-				"Content-Type": "application/json",
-			},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		},
-		{
-			name:   "Forbidden",
-			user:   TestUser.Id,
-			client: TestClient.Id,
-			role:   utils.Point(entity.RoleGuest),
-			headers: map[string]string{
-				"User-Agent":    TestAgent,
-				"Content-Type":  "application/json",
-				"Authorization": access2.Hash,
-			},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
 		},
 	}
 

@@ -59,7 +59,7 @@ func (s *TestSuite) TestHttpAdminCallback() {
 
 			c := s.app.HttpServer.NewContext(req, rec)
 
-			if err := s.sendToServer(ctrl.Callback, c); err != nil {
+			if err = s.sendToServer(ctrl.Callback, c); err != nil {
 				if tc.expErr != "" {
 					s.Assert().ErrorContains(err, tc.expErr, MsgNotAssertError)
 				} else {

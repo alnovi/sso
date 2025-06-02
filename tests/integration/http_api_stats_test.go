@@ -21,9 +21,6 @@ func (s *TestSuite) TestHttpApiStats() {
 	_, accessExp, refreshExp, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin, token.WithAccessExpiresAt(time.Now().Add(-time.Minute)))
 	s.Require().NoError(err)
 
-	_, accessManager, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name    string
 		headers map[string]string
@@ -40,7 +37,7 @@ func (s *TestSuite) TestHttpApiStats() {
 			},
 			cookies: []*http.Cookie{},
 			expCode: http.StatusOK,
-			expBody: `{"users":2,"clients":2,"sessions":3}`,
+			expBody: `{"users":2,"clients":2,"sessions":2}`,
 		},
 		{
 			name: "Success with refresh",
@@ -51,26 +48,7 @@ func (s *TestSuite) TestHttpApiStats() {
 			},
 			cookies: []*http.Cookie{},
 			expCode: http.StatusOK,
-			expBody: `{"users":2,"clients":2,"sessions":3}`,
-		},
-		{
-			name: "Unauthorized",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-			},
-			cookies: []*http.Cookie{},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		},
-		{
-			name: "Forbidden",
-			headers: map[string]string{
-				"Content-Type":  "application/json",
-				"Authorization": fmt.Sprintf("Bearer %s", accessManager.Hash),
-			},
-			cookies: []*http.Cookie{},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
+			expBody: `{"users":2,"clients":2,"sessions":2}`,
 		},
 	}
 

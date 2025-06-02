@@ -27,7 +27,7 @@ func Auth(auth *oauth.OAuth, cook *cookie.Cookie, clientId, clientSecret string)
 				refreshToken = sessionToken.Value
 			}
 
-			if accessToken == "" && refreshToken == "" {
+			if accessToken == "" {
 				return echo.ErrUnauthorized
 			}
 
@@ -35,6 +35,10 @@ func Auth(auth *oauth.OAuth, cook *cookie.Cookie, clientId, clientSecret string)
 			if err != nil {
 				var access *entity.Token
 				var refresh *entity.Token
+
+				if refreshToken == "" {
+					return echo.ErrUnauthorized
+				}
 
 				inp := oauth.InputTokenByRefresh{
 					ClientId:     clientId,

@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,9 +14,6 @@ import (
 
 func (s *TestSuite) TestHttpApiUserUpdate() {
 	_, access, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
-	s.Require().NoError(err)
-
-	_, access2, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
 	s.Require().NoError(err)
 
 	testCases := []struct {
@@ -143,29 +139,6 @@ func (s *TestSuite) TestHttpApiUserUpdate() {
 				`"password":"password должен содержать максимум 24 символа"`,
 			},
 			expErr: "Unprocessable Entity",
-		},
-		{
-			name: "Unauthorized",
-			user: s.config().UAdmin.Id,
-			headers: map[string]string{
-				"User-Agent":   TestAgent,
-				"Content-Type": "application/json",
-			},
-			data:    map[string]any{},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		},
-		{
-			name: "Forbidden",
-			user: s.config().UAdmin.Id,
-			headers: map[string]string{
-				"User-Agent":    TestAgent,
-				"Content-Type":  "application/json",
-				"Authorization": fmt.Sprintf("Bearer %s", access2.Hash),
-			},
-			data:    map[string]any{},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
 		},
 	}
 

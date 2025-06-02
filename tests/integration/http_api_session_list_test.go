@@ -16,9 +16,6 @@ func (s *TestSuite) TestHttpApiSessionList() {
 	session, access, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
-	_, access2, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name    string
 		headers map[string]string
@@ -39,25 +36,6 @@ func (s *TestSuite) TestHttpApiSessionList() {
 				fmt.Sprintf(`"agent":"%s"`, session.Agent),
 				fmt.Sprintf(`"name":"%s"`, s.config().UAdmin.Name),
 			},
-		},
-		{
-			name: "Unauthorized",
-			headers: map[string]string{
-				"User-Agent":   TestAgent,
-				"Content-Type": "application/json",
-			},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		},
-		{
-			name: "Forbidden",
-			headers: map[string]string{
-				"User-Agent":    TestAgent,
-				"Content-Type":  "application/json",
-				"Authorization": access2.Hash,
-			},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
 		},
 	}
 

@@ -3,6 +3,7 @@ package integration
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -280,6 +281,25 @@ func (s *TestSuite) sendToServer(h echo.HandlerFunc, c echo.Context, mws ...echo
 	}
 
 	return err
+}
+
+func (s *TestSuite) sendToMiddleware(c echo.Context, ms ...echo.MiddlewareFunc) error {
+	if len(ms) == 0 {
+		return errors.New("middlewares must not be empty")
+	}
+
+	for _, m := range ms {
+		h := m(func(c echo.Context) error {
+			return nil
+		})
+
+		if err := h(c); err != nil {
+			s.app.HttpServer.HTTPErrorHandler(err, c)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *TestSuite) accessTokens(clientId, userId, role string, opts ...token.Option) (session *entity.Session, access, refresh *entity.Token, err error) {

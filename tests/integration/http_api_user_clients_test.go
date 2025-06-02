@@ -16,9 +16,6 @@ func (s *TestSuite) TestHttpApiUserClients() {
 	_, access, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
-	_, access2, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name    string
 		user    string
@@ -55,25 +52,6 @@ func (s *TestSuite) TestHttpApiUserClients() {
 				TestClient.Name,
 				entity.RoleManager,
 			},
-		}, {
-			name: "Unauthorized",
-			user: s.config().UAdmin.Id,
-			headers: map[string]string{
-				"User-Agent":   TestAgent,
-				"Content-Type": "application/json",
-			},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		}, {
-			name: "Forbidden",
-			user: s.config().UAdmin.Id,
-			headers: map[string]string{
-				"User-Agent":    TestAgent,
-				"Content-Type":  "application/json",
-				"Authorization": fmt.Sprintf("Bearer %s", access2.Hash),
-			},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
 		},
 	}
 

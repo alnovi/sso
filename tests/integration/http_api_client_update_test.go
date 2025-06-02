@@ -17,9 +17,6 @@ func (s *TestSuite) TestHttpApiClientUpdate() {
 	_, access, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleAdmin)
 	s.Require().NoError(err)
 
-	_, access2, _, err := s.accessTokens(s.config().CAdmin.Id, s.config().UAdmin.Id, entity.RoleManager)
-	s.Require().NoError(err)
-
 	testCases := []struct {
 		name    string
 		client  string
@@ -189,27 +186,6 @@ func (s *TestSuite) TestHttpApiClientUpdate() {
 			expCode: http.StatusUnprocessableEntity,
 			expBody: `"secret":"secret должен содержать максимум 100 символов"`,
 			expErr:  "Unprocessable Entity",
-		},
-		{
-			name:   "Unauthorized",
-			client: s.config().CAdmin.Id,
-			headers: map[string]string{
-				"User-Agent":   TestAgent,
-				"Content-Type": "application/json",
-			},
-			expCode: http.StatusUnauthorized,
-			expErr:  "Unauthorized",
-		},
-		{
-			name:   "Forbidden",
-			client: s.config().CAdmin.Id,
-			headers: map[string]string{
-				"User-Agent":    TestAgent,
-				"Content-Type":  "application/json",
-				"Authorization": fmt.Sprintf("Bearer %s", access2.Hash),
-			},
-			expCode: http.StatusForbidden,
-			expErr:  "Forbidden",
 		},
 	}
 
