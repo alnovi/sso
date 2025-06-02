@@ -70,7 +70,7 @@ func (t *Token) CodeToken(ctx context.Context, sessionId, clientId, userId strin
 }
 
 func (t *Token) AccessToken(ctx context.Context, sessionId, clientId, userId, userName, role string, opts ...Option) (*entity.Token, error) {
-	ctx, span := helper.SpanStart(ctx, "Token.AccessToken")
+	_, span := helper.SpanStart(ctx, "Token.AccessToken")
 	defer span.End()
 
 	now := time.Now()
