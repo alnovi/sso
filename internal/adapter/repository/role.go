@@ -23,11 +23,6 @@ func (r *Repository) Role(ctx context.Context, clientId, userId string) (*entity
 
 	role := new(entity.Role)
 
-	if err := r.checkUUID(userId); err != nil {
-		helper.SpanError(span, err)
-		return nil, err
-	}
-
 	builder := r.qb.Select(roleFields...).
 		From(RoleTable).
 		Where(sq.Eq{"client_id": clientId, "user_id": userId})
@@ -54,11 +49,6 @@ func (r *Repository) RoleByUserId(ctx context.Context, userId string, opts ...Op
 	defer span.End()
 
 	roles := make([]*entity.Role, 0)
-
-	if err := r.checkUUID(userId); err != nil {
-		helper.SpanError(span, err)
-		return roles, nil //nolint:nilerr
-	}
 
 	builder := r.qb.Select(roleFields...).
 		From(RoleTable).
