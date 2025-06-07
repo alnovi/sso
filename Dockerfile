@@ -1,4 +1,4 @@
-FROM node:24-alpine3.21 as node-builder
+FROM node:24-alpine3.21 AS node-builder
 
 WORKDIR /app
 
@@ -16,6 +16,7 @@ ENV GOOS=linux
 
 WORKDIR /app
 
+COPY . .
 COPY --from=node-builder /app ./web
 
 RUN go mod download
