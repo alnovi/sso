@@ -12,7 +12,7 @@ import (
 // @contact.url  https://github.com/alnovi
 //
 // @license.name MIT
-// @license.url  https://github.com/alnovi/sso/LICENSE.md
+// @license.url  https://raw.githubusercontent.com/alnovi/sso/refs/heads/master/LICENSE.md
 //
 // @query.collection.format multi
 func main() {
