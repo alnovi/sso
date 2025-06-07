@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./web .
 
 RUN npm install
-RUN node npm run build
+RUN npm run build
 
 FROM golang:1.24.3-alpine3.21 AS go-builder
 
