@@ -7,7 +7,6 @@ import (
 	"github.com/pressly/goose/v3"
 
 	"github.com/alnovi/sso/config"
-	"github.com/alnovi/sso/pkg/migrator"
 )
 
 func init() {
@@ -37,5 +36,5 @@ func downCreateClientsTable(ctx context.Context, tx *sql.Tx) error {
 }
 
 func getConfig(ctx context.Context) *config.Config {
-	return ctx.Value(migrator.ConfigKey).(*config.Config)
+	return ctx.Value(config.CtxConfigKey).(*config.Config)
 }

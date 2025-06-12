@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/alnovi/gomon/utils"
+	"github.com/alnovi/gomon/validator"
 	"github.com/labstack/echo/v4"
 
 	"github.com/alnovi/sso/config"
@@ -14,8 +16,6 @@ import (
 	"github.com/alnovi/sso/internal/transport/http/controller"
 	"github.com/alnovi/sso/internal/transport/http/request"
 	"github.com/alnovi/sso/internal/transport/http/response"
-	"github.com/alnovi/sso/pkg/utils"
-	"github.com/alnovi/sso/pkg/validator"
 )
 
 type AuthController struct {

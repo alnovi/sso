@@ -11,6 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alnovi/gomon/configure"
+	"github.com/alnovi/gomon/logger"
+	"github.com/alnovi/gomon/utils"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
@@ -22,9 +25,6 @@ import (
 	"github.com/alnovi/sso/internal/app/server"
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/service/token"
-	"github.com/alnovi/sso/pkg/configure"
-	"github.com/alnovi/sso/pkg/logger"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 const (
@@ -116,8 +116,8 @@ func (s *TestSuite) TearDownTest() {
 	})
 }
 
-func (s *TestSuite) initConfig(_ context.Context, cfg *config.Config) {
-	s.Require().NoError(configure.LoadFromEnv(cfg))
+func (s *TestSuite) initConfig(ctx context.Context, cfg *config.Config) {
+	s.Require().NoError(configure.LoadFromEnv(ctx, cfg))
 
 	cfg.App.Environment = config.AppEnvironmentTesting
 	cfg.App.Host = "http://localhost:8080"

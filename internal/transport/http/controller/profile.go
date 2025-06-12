@@ -5,13 +5,13 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/alnovi/gomon/validator"
 	"github.com/labstack/echo/v4"
 
 	"github.com/alnovi/sso/internal/service/cookie"
 	"github.com/alnovi/sso/internal/service/profile"
 	"github.com/alnovi/sso/internal/transport/http/request"
 	"github.com/alnovi/sso/internal/transport/http/response"
-	"github.com/alnovi/sso/pkg/validator"
 )
 
 type ProfileController struct {

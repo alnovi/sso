@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/alnovi/gomon/utils"
+
 	"github.com/alnovi/sso/internal/entity"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 type Session struct {

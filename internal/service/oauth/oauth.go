@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"slices"
 
+	"github.com/alnovi/gomon/utils"
 	"github.com/google/uuid"
 
 	"github.com/alnovi/sso/internal/adapter/mailing"
@@ -14,7 +15,6 @@ import (
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/internal/service/token"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 const (

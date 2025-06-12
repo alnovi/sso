@@ -4,6 +4,12 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/alnovi/gomon/closer"
+	"github.com/alnovi/gomon/configure"
+	"github.com/alnovi/gomon/logger"
+	"github.com/alnovi/gomon/migrator"
+	"github.com/alnovi/gomon/utils"
+	"github.com/alnovi/gomon/validator"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -26,14 +32,8 @@ import (
 	"github.com/alnovi/sso/internal/service/stats"
 	"github.com/alnovi/sso/internal/service/storage"
 	"github.com/alnovi/sso/internal/service/token"
-	"github.com/alnovi/sso/pkg/closer"
-	"github.com/alnovi/sso/pkg/configure"
 	"github.com/alnovi/sso/pkg/database/postgres"
-	"github.com/alnovi/sso/pkg/logger"
-	"github.com/alnovi/sso/pkg/migrator"
 	"github.com/alnovi/sso/pkg/scheduler"
-	"github.com/alnovi/sso/pkg/utils"
-	"github.com/alnovi/sso/pkg/validator"
 	_ "github.com/alnovi/sso/scripts/migrations"
 )
 
@@ -42,8 +42,9 @@ type Provider struct {
 	logger      *slog.Logger
 	tracer      itrace.TracerProvider
 	closer      *closer.Closer
-	validator   *validator.EchoValidator
+	validator   *validator.Validator
 	db          *postgres.Client
+	migrator    *migrator.Migrator
 	repository  *repository.Repository
 	transaction repository.Transaction
 	mailing     *mailing.Mailing
@@ -68,8 +69,10 @@ func New(config *config.Config) *Provider {
 func (p *Provider) Config() *config.Config {
 	if p.config == nil {
 		p.config = new(config.Config)
-		err := configure.LoadFromEnv(p.config)
+
+		err := configure.LoadFromEnv(context.Background(), p.config)
 		utils.MustMsg(err, "failed to load environment variables config")
+
 		p.config.Normalize()
 	}
 	return p.config
@@ -141,11 +144,11 @@ func (p *Provider) Tracer() itrace.TracerProvider {
 	return p.tracer
 }
 
-func (p *Provider) Validator() *validator.EchoValidator {
+func (p *Provider) Validator() *validator.Validator {
 	if p.validator == nil {
 		var err error
 
-		p.validator = validator.NewEchoValidator()
+		p.validator = validator.NewValidator()
 
 		err = p.validator.AddRule(rule.NewClientID())
 		utils.MustMsg(err, "failed to add rule 'client id'")
@@ -184,29 +187,37 @@ func (p *Provider) Transaction() repository.Transaction {
 	return p.transaction
 }
 
-func (p *Provider) MigrationUp() {
-	ctx := context.WithValue(context.Background(), migrator.ConfigKey, p.Config())
-	log := migrator.NewGooseLogger(p.LoggerMod("migrate"))
-	db := p.DB().DB()
+func (p *Provider) Migrator() *migrator.Migrator {
+	if p.migrator == nil {
+		p.migrator = migrator.NewMigrator(
+			migrator.WithLogger(p.LoggerMod("migrator")),
+			migrator.WithDialect(migrator.DialectPostgres),
+		)
+	}
+	return p.migrator
+}
 
+func (p *Provider) MigrationUp() {
+	ctx := context.WithValue(context.Background(), config.CtxConfigKey, p.Config())
+
+	db := p.DB().DB()
 	defer func() {
 		_ = db.Close()
 	}()
 
-	err := migrator.PostgresUpFromPath(ctx, db, ".", log)
+	err := p.Migrator().UpContext(ctx, db)
 	utils.Must(err)
 }
 
 func (p *Provider) MigrationDown() {
-	ctx := context.WithValue(context.Background(), migrator.ConfigKey, p.Config())
-	log := migrator.NewGooseLogger(p.LoggerMod("migrate"))
-	db := p.DB().DB()
+	ctx := context.WithValue(context.Background(), config.CtxConfigKey, p.Config())
 
+	db := p.DB().DB()
 	defer func() {
 		_ = db.Close()
 	}()
 
-	err := migrator.PostgresResetFromPath(ctx, db, ".", log)
+	err := p.Migrator().ResetContext(ctx, db)
 	utils.Must(err)
 }
 

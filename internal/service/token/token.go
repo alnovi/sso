@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alnovi/gomon/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/helper"
 	"github.com/alnovi/sso/pkg/rand"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 var (

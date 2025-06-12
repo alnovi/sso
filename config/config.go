@@ -13,6 +13,7 @@ const (
 )
 
 var Version = "v0.0.0"
+var CtxConfigKey = "config"
 
 type Config struct {
 	App       App       `env:",prefix=APP_"`

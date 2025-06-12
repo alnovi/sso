@@ -4,9 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/alnovi/gomon/utils"
 	"github.com/pressly/goose/v3"
-
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 func init() {

@@ -6,12 +6,12 @@ import (
 	"net/http/httptest"
 	"strings"
 
+	"github.com/alnovi/gomon/utils"
 	"github.com/labstack/echo/v4"
 
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/transport/http/controller/oauth"
 	"github.com/alnovi/sso/internal/transport/http/middleware"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 func (s *TestSuite) TestHttpOAuthResetPassword() {

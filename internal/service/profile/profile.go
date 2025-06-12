@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/alnovi/gomon/utils"
+
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/helper"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 var (

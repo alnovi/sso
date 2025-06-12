@@ -3,12 +3,12 @@ package storage
 import (
 	"context"
 
+	"github.com/alnovi/gomon/utils"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/alnovi/sso/internal/adapter/repository"
 	"github.com/alnovi/sso/internal/entity"
 	"github.com/alnovi/sso/internal/helper"
-	"github.com/alnovi/sso/pkg/utils"
 )
 
 type Sessions struct {
