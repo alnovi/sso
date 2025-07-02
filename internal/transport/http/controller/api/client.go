@@ -22,6 +22,17 @@ func NewClientController(clients *storage.Clients) *ClientController {
 	return &ClientController{clients: clients}
 }
 
+// List         godoc
+// @Id          ClientsList
+// @Summary     Список клиентов
+// @Description Список клиентов
+// @Tags        Api Clients
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200 {object} []response.Client "Информация о клиентах"
+// @Failure 403
+// @Router      /api/clients [get]
 func (c *ClientController) List(e echo.Context) error {
 	clients, err := c.clients.All(e.Request().Context())
 	if err != nil {
@@ -30,6 +41,19 @@ func (c *ClientController) List(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewClients(clients))
 }
 
+// Get          godoc
+// @Id          ClientsGet
+// @Summary     Клиент
+// @Description Информация о клиенте
+// @Tags        Api Clients
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       id query string true "Идентификатор клиента"
+// @Success 200 {object} response.Client "Информация о клиенте"
+// @Failure 403
+// @Failure 404
+// @Router      /api/clients/{id} [get]
 func (c *ClientController) Get(e echo.Context) error {
 	client, err := c.clients.GetById(e.Request().Context(), e.Param("id"))
 	if err != nil {
@@ -38,6 +62,19 @@ func (c *ClientController) Get(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewClient(client))
 }
 
+// Create       godoc
+// @Id          ClientsCreate
+// @Summary     Добавление клиенте
+// @Description Добавление нового клиента
+// @Tags        Api Clients
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       request body request.CreateClient true "Данные клиента"
+// @Success 200 {object} response.Client "Информация о клиенте"
+// @Failure 403
+// @Failure 422
+// @Router      /api/clients [post]
 func (c *ClientController) Create(e echo.Context) error {
 	req := new(request.CreateClient)
 
@@ -64,6 +101,21 @@ func (c *ClientController) Create(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewClient(client))
 }
 
+// Update       godoc
+// @Id          ClientsUpdate
+// @Summary     Изменение клиенте
+// @Description Изменение клиента
+// @Tags        Api Clients
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       id query string true "Идентификатор клиента"
+// @Param       request body request.UpdateClient true "Данные клиента"
+// @Success 200 {object} response.Client "Информация о клиенте"
+// @Failure 403
+// @Failure 404
+// @Failure 422
+// @Router      /api/clients/{id} [put]
 func (c *ClientController) Update(e echo.Context) error {
 	req := new(request.UpdateClient)
 
@@ -87,6 +139,19 @@ func (c *ClientController) Update(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewClient(client))
 }
 
+// Delete       godoc
+// @Id          ClientsDelete
+// @Summary     Удаление клиенте
+// @Description Удаление клиента
+// @Tags        Api Clients
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       id query string true "Идентификатор клиента"
+// @Success 200 {object} response.Client "Информация о клиенте"
+// @Failure 403
+// @Failure 404
+// @Router      /api/clients/{id} [delete]
 func (c *ClientController) Delete(e echo.Context) error {
 	client, err := c.clients.Delete(e.Request().Context(), e.Param("id"))
 	if err != nil {
@@ -95,6 +160,19 @@ func (c *ClientController) Delete(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewClient(client))
 }
 
+// Restore      godoc
+// @Id          ClientsRestore
+// @Summary     Восстановление клиента
+// @Description Восстановление удаленного клиента
+// @Tags        Api Clients
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       id query string true "Идентификатор клиента"
+// @Success 200 {object} response.Client "Информация о клиенте"
+// @Failure 403
+// @Failure 404
+// @Router      /api/clients/{id}/restore [post]
 func (c *ClientController) Restore(e echo.Context) error {
 	client, err := c.clients.Restore(e.Request().Context(), e.Param("id"))
 	if err != nil {

@@ -28,6 +28,21 @@ func NewAuthController(oauth *oauth.OAuth, cookie *cookie.Cookie) *AuthControlle
 	return &AuthController{oauth: oauth, cookie: cookie}
 }
 
+// Form         godoc
+// @Id          OAuthForm
+// @Summary     Форма аутентификации
+// @Description Форма аутентификации пользователя
+// @Tags        OAuth
+// @Accept      html
+// @Produce     html
+// @Param       client_id query string true "идентификатор клиента"
+// @Param       response_type query string true "тип запроса"
+// @Param       redirect_uri query string true "адрес клиента (callback)"
+// @Param       state query string false "состояние"
+// @Success 200
+// @Success 302
+// @Failure 400
+// @Router      /oauth/authorize [get]
 func (c *AuthController) Form(e echo.Context) error {
 	if session, err := e.Cookie(cookie.SessionId); err == nil {
 		var redirectURI *url.URL
@@ -80,6 +95,19 @@ func (c *AuthController) Form(e echo.Context) error {
 	return e.Render(http.StatusOK, "auth.html", resp)
 }
 
+// Authorize    godoc
+// @Id          OAuthAuthorize
+// @Summary     Аутентификации пользователя
+// @Description Аутентификации пользователя
+// @Tags        OAuth
+// @Accept      json
+// @Produce     json
+// @Param       request body request.Authorize true "Логин и пароль пользователя"
+// @Success 200
+// @Success 302
+// @Failure 400
+// @Failure 422
+// @Router      /oauth/authorize [post]
 func (c *AuthController) Authorize(e echo.Context) error {
 	req := new(request.Authorize)
 

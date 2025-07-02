@@ -25,6 +25,17 @@ func NewProfileController(profile *profile.UserProfile, cookie *cookie.Cookie, s
 	return &ProfileController{profile: profile, cookie: cookie, session: session}
 }
 
+// Home         godoc
+// @Id          ProfileHome
+// @Summary     Страница профиля пользователя
+// @Description Профиль текущего пользователя
+// @Tags        Profile
+// @Accept      html
+// @Produce     html
+// @Security    JWT-Access
+// @Success 200
+// @Failure 401
+// @Router      /profile [get]
 func (c *ProfileController) Home(e echo.Context) error {
 	sessionId := e.QueryParam(cookie.SessionId)
 	userAgent := e.Request().UserAgent()
@@ -42,6 +53,16 @@ func (c *ProfileController) Home(e echo.Context) error {
 	return e.Render(http.StatusOK, "profile.html", nil)
 }
 
+// Me           godoc
+// @Id          ProfileMe
+// @Summary     Профиль пользователя
+// @Description Профиль текущего пользователя
+// @Tags        Profile
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200 {object} response.ProfileUser "Profile User"
+// @Router      /profile/me [get]
 func (c *ProfileController) Me(e echo.Context) error {
 	userId := c.MustUserId(e)
 
@@ -53,6 +74,17 @@ func (c *ProfileController) Me(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewProfileUser(user))
 }
 
+// UpdateUser   godoc
+// @Id          ProfileUpdateUser
+// @Summary     Изменение данных пользователя
+// @Description Изменение данных текущего пользователя
+// @Tags        Profile
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       request body request.UpdateProfile true "Data user"
+// @Success 200 {object} response.ProfileUser "File info"
+// @Router      /profile/me [put]
 func (c *ProfileController) UpdateUser(e echo.Context) error {
 	userId := c.MustUserId(e)
 
@@ -70,6 +102,16 @@ func (c *ProfileController) UpdateUser(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewProfileUser(user))
 }
 
+// Clients      godoc
+// @Id          ProfileClients
+// @Summary     Приложения пользователя
+// @Description Приложения доступны текущему пользователю
+// @Tags        Profile
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200 {object} []response.ProfileClient "Profile client"
+// @Router      /profile/clients [get]
 func (c *ProfileController) Clients(e echo.Context) error {
 	userId := c.MustUserId(e)
 
@@ -81,6 +123,16 @@ func (c *ProfileController) Clients(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewCollProfileClient(clients))
 }
 
+// Sessions     godoc
+// @Id          ProfileSessions
+// @Summary     Сессии пользователя
+// @Description Список устройств пользователя
+// @Tags        Profile
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200 {object} []response.ProfileSession "Profile session"
+// @Router      /profile/sessions [get]
 func (c *ProfileController) Sessions(e echo.Context) error {
 	userId := c.MustUserId(e)
 	sessionId := c.MustSessionId(e)
@@ -93,6 +145,17 @@ func (c *ProfileController) Sessions(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewCollProfileSession(sessions, sessionId))
 }
 
+// SessionDelete godoc
+// @Id           ProfileSessionDelete
+// @Summary      Удаление сессии
+// @Description  Удаление сессии текущего пользователя
+// @Tags         Profile
+// @Accept       json
+// @Produce      json
+// @Security     JWT-Access
+// @Param        id query string true "ID session"
+// @Success 200
+// @Router       /profile/sessions/{id} [delete]
 func (c *ProfileController) SessionDelete(e echo.Context) error {
 	userId := c.MustUserId(e)
 	sessionId := c.MustSessionId(e)
@@ -113,6 +176,17 @@ func (c *ProfileController) SessionDelete(e echo.Context) error {
 	return e.NoContent(http.StatusOK)
 }
 
+// UpdatePassword godoc
+// @Id            ProfileUpdatePassword
+// @Summary       Изменение пароля пользователя
+// @Description   Изменение пароля текущего пользователя
+// @Tags          Profile
+// @Accept        json
+// @Produce       json
+// @Security      JWT-Access
+// @Param         request body request.UpdatePassword true "Password user"
+// @Success 200
+// @Router        /profile/password [put]
 func (c *ProfileController) UpdatePassword(e echo.Context) error {
 	userId := c.MustUserId(e)
 
@@ -133,6 +207,16 @@ func (c *ProfileController) UpdatePassword(e echo.Context) error {
 	return e.NoContent(http.StatusOK)
 }
 
+// Logout       godoc
+// @Id          ProfileLogout
+// @Summary     Выход из системы
+// @Description Выход из системы текущего пользователя
+// @Tags        Profile
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200
+// @Router      /profile/logout [post]
 func (c *ProfileController) Logout(e echo.Context) error {
 	_ = c.profile.Logout(context.Background(), c.MustSessionId(e))
 	e.SetCookie(c.cookie.Remove(cookie.SessionId))

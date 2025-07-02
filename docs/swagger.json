@@ -9,9 +9,1993 @@
         },
         "license": {
             "name": "MIT",
-            "url": "https://github.com/alnovi/sso/LICENSE.md"
+            "url": "https://raw.githubusercontent.com/alnovi/sso/refs/heads/master/LICENSE.md"
         },
         "version": "1.0.0"
     },
-    "paths": {}
+    "host": "http://localhost:8081",
+    "paths": {
+        "/admin": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Раздел администратора. Управление клиентами, пользователями и т.д.",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Раздел администратора",
+                "operationId": "AdminHome",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "302": {
+                        "description": "Found"
+                    }
+                }
+            }
+        },
+        "/admin/callback": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Аутентификация пользователя по коду. Вызывается автоматически после ввода логина и пароля.",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Аутентификация пользователя",
+                "operationId": "AdminCallback",
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "/admin"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/logout": {
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Выход из раздела администратора",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Выход из системы",
+                "operationId": "AdminLogout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/clients": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Список клиентов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Clients"
+                ],
+                "summary": "Список клиентов",
+                "operationId": "ClientsList",
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиентах",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.Client"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Добавление нового клиента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Clients"
+                ],
+                "summary": "Добавление клиенте",
+                "operationId": "ClientsCreate",
+                "parameters": [
+                    {
+                        "description": "Данные клиента",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateClient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиенте",
+                        "schema": {
+                            "$ref": "#/definitions/response.Client"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/api/clients/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Информация о клиенте",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Clients"
+                ],
+                "summary": "Клиент",
+                "operationId": "ClientsGet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор клиента",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиенте",
+                        "schema": {
+                            "$ref": "#/definitions/response.Client"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Изменение клиента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Clients"
+                ],
+                "summary": "Изменение клиенте",
+                "operationId": "ClientsUpdate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор клиента",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные клиента",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateClient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиенте",
+                        "schema": {
+                            "$ref": "#/definitions/response.Client"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Удаление клиента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Clients"
+                ],
+                "summary": "Удаление клиенте",
+                "operationId": "ClientsDelete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор клиента",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиенте",
+                        "schema": {
+                            "$ref": "#/definitions/response.Client"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/clients/{id}/restore": {
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Восстановление удаленного клиента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Clients"
+                ],
+                "summary": "Восстановление клиента",
+                "operationId": "ClientsRestore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор клиента",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиенте",
+                        "schema": {
+                            "$ref": "#/definitions/response.Client"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Список сессий пользователей",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Sessions"
+                ],
+                "summary": "Список сессий",
+                "operationId": "SessionsList",
+                "responses": {
+                    "200": {
+                        "description": "Информация о сессиях пользователей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.SessionUser"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/sessions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Информация о сессии пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Sessions"
+                ],
+                "summary": "Сессия",
+                "operationId": "SessionsGet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор сессии",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о сессии пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/response.SessionUser"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Удаление сессии пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Sessions"
+                ],
+                "summary": "Удаление сессии",
+                "operationId": "SessionsDelete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор сессии",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/stats": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Метод возвращает количество пользователй, клиентов и сессий",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Stats"
+                ],
+                "summary": "Статистика",
+                "operationId": "StatsAll",
+                "responses": {
+                    "200": {
+                        "description": "Статистика",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.Stats"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Список пользователей",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Список пользователей",
+                "operationId": "UsersList",
+                "responses": {
+                    "200": {
+                        "description": "Информация о пользователях",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.User"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Добавление нового пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Добавление пользователя",
+                "operationId": "UsersCreate",
+                "parameters": [
+                    {
+                        "description": "Данные пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о пользователе",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Информация о пользователе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Пользователь",
+                "operationId": "UsersGet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о пользователе",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Изменение пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Изменение пользователя",
+                "operationId": "UsersUpdate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о пользователе",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Удаление пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Удаление пользователя",
+                "operationId": "UsersDelete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о пользователе",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/users/{id}/clients": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Список приложений и права доступа для пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Список клиентов пользователя",
+                "operationId": "UsersClients",
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиентах и правах доступа",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ClientRole"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/users/{id}/restore": {
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Восстановление удаленного пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Восстановление пользователя",
+                "operationId": "UsersRestore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о пользователе",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/users/{uid}/clients/{cid}": {
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Изменение роли доступа пользователя в приложении",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api Users"
+                ],
+                "summary": "Изменение роли пользователя",
+                "operationId": "UsersUpdateRole",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "uid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Идентификатор клиента",
+                        "name": "сid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Роль пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateUserRole"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/oauth/authorize": {
+            "get": {
+                "description": "Форма аутентификации пользователя",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Форма аутентификации",
+                "operationId": "OAuthForm",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "идентификатор клиента",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "тип запроса",
+                        "name": "response_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "адрес клиента (callback)",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "состояние",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "302": {
+                        "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            },
+            "post": {
+                "description": "Аутентификации пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Аутентификации пользователя",
+                "operationId": "OAuthAuthorize",
+                "parameters": [
+                    {
+                        "description": "Логин и пароль пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Authorize"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "302": {
+                        "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/oauth/certs": {
+            "get": {
+                "description": "Публичный ключ для проверки токена",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Публичный ключ",
+                "operationId": "OAuthCerts",
+                "responses": {
+                    "200": {
+                        "description": "Json web key",
+                        "schema": {
+                            "$ref": "#/definitions/response.JWK"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/oauth/forgot-password": {
+            "get": {
+                "description": "Форма получения токена для восстановления пароля",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Форма \"Забыли пароль\"",
+                "operationId": "OAuthFormForgot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "идентификатор клиента",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "тип запроса",
+                        "name": "response_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "адрес клиента (callback)",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "состояние",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            },
+            "post": {
+                "description": "Отправка токена сброса пароля на почту пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Отправка токена сброса пароля",
+                "operationId": "OAuthForgotPassword",
+                "parameters": [
+                    {
+                        "description": "Логин пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ForgotPassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/oauth/reset-password": {
+            "get": {
+                "description": "Форма для восстановления доступа",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Форма восстановления пароля",
+                "operationId": "OAuthFormReset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "токен восстановления доступа",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            },
+            "post": {
+                "description": "Задать новый пароль пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Сброс пароля",
+                "operationId": "OAuthResetPassword",
+                "parameters": [
+                    {
+                        "description": "Новый пароль пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResetPassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "302": {
+                        "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/oauth/token": {
+            "post": {
+                "description": "Метод получения токена доступа",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Токен доступа",
+                "operationId": "OAuthToken",
+                "parameters": [
+                    {
+                        "enum": [
+                            "authorization_code",
+                            "refresh_token"
+                        ],
+                        "type": "string",
+                        "description": "типа разрешения",
+                        "name": "grant_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "идентификатор клиента",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "секрет клиента",
+                        "name": "client_secret",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "code токен",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh токен",
+                        "name": "refresh_token",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Токен доступа",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.AccessToken"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Профиль текущего пользователя",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Страница профиля пользователя",
+                "operationId": "ProfileHome",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/profile/clients": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Приложения доступны текущему пользователю",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Приложения пользователя",
+                "operationId": "ProfileClients",
+                "responses": {
+                    "200": {
+                        "description": "Profile client",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ProfileClient"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/logout": {
+            "post": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Выход из системы текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Выход из системы",
+                "operationId": "ProfileLogout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/profile/me": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Профиль текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Профиль пользователя",
+                "operationId": "ProfileMe",
+                "responses": {
+                    "200": {
+                        "description": "Profile User",
+                        "schema": {
+                            "$ref": "#/definitions/response.ProfileUser"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Изменение данных текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Изменение данных пользователя",
+                "operationId": "ProfileUpdateUser",
+                "parameters": [
+                    {
+                        "description": "Data user",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateProfile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File info",
+                        "schema": {
+                            "$ref": "#/definitions/response.ProfileUser"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/password": {
+            "put": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Изменение пароля текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Изменение пароля пользователя",
+                "operationId": "ProfileUpdatePassword",
+                "parameters": [
+                    {
+                        "description": "Password user",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdatePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/profile/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Список устройств пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Сессии пользователя",
+                "operationId": "ProfileSessions",
+                "responses": {
+                    "200": {
+                        "description": "Profile session",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ProfileSession"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/sessions/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT-Access": []
+                    }
+                ],
+                "description": "Удаление сессии текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Удаление сессии",
+                "operationId": "ProfileSessionDelete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID session",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "request.Authorize": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "name@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5,
+                    "example": "qwerty"
+                },
+                "remember": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.CreateClient": {
+            "type": "object",
+            "required": [
+                "callback",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "callback": {
+                    "type": "string",
+                    "maxLength": 250
+                },
+                "icon": {
+                    "type": "string",
+                    "maxLength": 250
+                },
+                "id": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 5
+                },
+                "secret": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 5
+                }
+            }
+        },
+        "request.CreateUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5
+                }
+            }
+        },
+        "request.ForgotPassword": {
+            "type": "object",
+            "required": [
+                "login"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "name@example.com"
+                }
+            }
+        },
+        "request.ResetPassword": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5,
+                    "example": "qwerty"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "token-hash"
+                }
+            }
+        },
+        "request.UpdateClient": {
+            "type": "object",
+            "required": [
+                "callback",
+                "name",
+                "secret"
+            ],
+            "properties": {
+                "callback": {
+                    "type": "string",
+                    "maxLength": 250
+                },
+                "icon": {
+                    "type": "string",
+                    "maxLength": 250
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 5
+                },
+                "secret": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 5
+                }
+            }
+        },
+        "request.UpdatePassword": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5,
+                    "example": "secret"
+                },
+                "old_password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5,
+                    "example": "secret"
+                }
+            }
+        },
+        "request.UpdateProfile": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 5,
+                    "example": "ivanov@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3,
+                    "example": "Ivanov"
+                }
+            }
+        },
+        "request.UpdateUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 24,
+                    "minLength": 5
+                }
+            }
+        },
+        "request.UpdateUserRole": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "guest",
+                        "user",
+                        "manager",
+                        "admin"
+                    ]
+                }
+            }
+        },
+        "response.AccessToken": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Client": {
+            "type": "object",
+            "properties": {
+                "callback": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_system": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ClientRole": {
+            "type": "object",
+            "properties": {
+                "callback": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_system": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "validate": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.JWK": {
+            "type": "object",
+            "properties": {
+                "alg": {
+                    "type": "string",
+                    "example": "RS256"
+                },
+                "e": {
+                    "type": "string",
+                    "example": "AQAB"
+                },
+                "key_ops": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "verify"
+                    ]
+                },
+                "kty": {
+                    "type": "string",
+                    "example": "RSA"
+                },
+                "n": {
+                    "type": "string",
+                    "example": "4TBai9lUV9qU0LqD37qpNTpJ1QuIn_2syDc9clGXKvf5lk6ESWaouvAT"
+                },
+                "use": {
+                    "type": "string",
+                    "example": "sig"
+                }
+            }
+        },
+        "response.ProfileClient": {
+            "type": "object",
+            "properties": {
+                "callback": {
+                    "type": "string",
+                    "example": "/callback/auth/"
+                },
+                "icon": {
+                    "type": "string",
+                    "example": "icon-music"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "music"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Music"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "response.ProfileSession": {
+            "type": "object",
+            "properties": {
+                "app": {
+                    "type": "string",
+                    "example": "music"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2020-01-01T00:00:00+03:00"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "127.0.0.1"
+                },
+                "is_current": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "os": {
+                    "type": "string",
+                    "example": "linux"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2020-01-01T00:00:00+03:00"
+                }
+            }
+        },
+        "response.ProfileUser": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2020-01-01T00:00:00+03:00"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ivanov@example.com"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Ivanov"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2020-01-01T00:00:00+03:00"
+                }
+            }
+        },
+        "response.SessionUser": {
+            "type": "object",
+            "properties": {
+                "agent": {
+                    "type": "string"
+                },
+                "app": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "is_current": {
+                    "type": "boolean"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/response.User"
+                }
+            }
+        },
+        "response.Stats": {
+            "type": "object",
+            "properties": {
+                "clients": {
+                    "type": "integer"
+                },
+                "sessions": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "JWT-Access": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
 }

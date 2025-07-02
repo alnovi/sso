@@ -1,3 +1,358 @@
+definitions:
+  request.Authorize:
+    properties:
+      login:
+        example: name@example.com
+        minLength: 5
+        type: string
+      password:
+        example: qwerty
+        maxLength: 24
+        minLength: 5
+        type: string
+      remember:
+        type: boolean
+    required:
+    - login
+    - password
+    type: object
+  request.CreateClient:
+    properties:
+      callback:
+        maxLength: 250
+        type: string
+      icon:
+        maxLength: 250
+        type: string
+      id:
+        maxLength: 30
+        minLength: 3
+        type: string
+      name:
+        maxLength: 50
+        minLength: 5
+        type: string
+      secret:
+        maxLength: 100
+        minLength: 5
+        type: string
+    required:
+    - callback
+    - id
+    - name
+    type: object
+  request.CreateUser:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      password:
+        maxLength: 24
+        minLength: 5
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  request.ForgotPassword:
+    properties:
+      login:
+        example: name@example.com
+        minLength: 5
+        type: string
+    required:
+    - login
+    type: object
+  request.ResetPassword:
+    properties:
+      password:
+        example: qwerty
+        maxLength: 24
+        minLength: 5
+        type: string
+      token:
+        example: token-hash
+        type: string
+    required:
+    - password
+    type: object
+  request.UpdateClient:
+    properties:
+      callback:
+        maxLength: 250
+        type: string
+      icon:
+        maxLength: 250
+        type: string
+      name:
+        maxLength: 50
+        minLength: 5
+        type: string
+      secret:
+        maxLength: 100
+        minLength: 5
+        type: string
+    required:
+    - callback
+    - name
+    - secret
+    type: object
+  request.UpdatePassword:
+    properties:
+      new_password:
+        example: secret
+        maxLength: 24
+        minLength: 5
+        type: string
+      old_password:
+        example: secret
+        maxLength: 24
+        minLength: 5
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  request.UpdateProfile:
+    properties:
+      email:
+        example: ivanov@example.com
+        maxLength: 100
+        minLength: 5
+        type: string
+      name:
+        example: Ivanov
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  request.UpdateUser:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      password:
+        maxLength: 24
+        minLength: 5
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  request.UpdateUserRole:
+    properties:
+      role:
+        enum:
+        - guest
+        - user
+        - manager
+        - admin
+        type: string
+    type: object
+  response.AccessToken:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  response.Client:
+    properties:
+      callback:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      is_system:
+        type: boolean
+      name:
+        type: string
+      secret:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.ClientRole:
+    properties:
+      callback:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      is_system:
+        type: boolean
+      name:
+        type: string
+      role:
+        type: string
+      secret:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.Error:
+    properties:
+      error:
+        type: string
+      validate:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  response.JWK:
+    properties:
+      alg:
+        example: RS256
+        type: string
+      e:
+        example: AQAB
+        type: string
+      key_ops:
+        example:
+        - verify
+        items:
+          type: string
+        type: array
+      kty:
+        example: RSA
+        type: string
+      "n":
+        example: 4TBai9lUV9qU0LqD37qpNTpJ1QuIn_2syDc9clGXKvf5lk6ESWaouvAT
+        type: string
+      use:
+        example: sig
+        type: string
+    type: object
+  response.ProfileClient:
+    properties:
+      callback:
+        example: /callback/auth/
+        type: string
+      icon:
+        example: icon-music
+        type: string
+      id:
+        example: music
+        type: string
+      name:
+        example: Music
+        type: string
+      role:
+        example: admin
+        type: string
+    type: object
+  response.ProfileSession:
+    properties:
+      app:
+        example: music
+        type: string
+      created_at:
+        example: "2020-01-01T00:00:00+03:00"
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        type: string
+      ip:
+        example: 127.0.0.1
+        type: string
+      is_current:
+        example: true
+        type: boolean
+      os:
+        example: linux
+        type: string
+      updated_at:
+        example: "2020-01-01T00:00:00+03:00"
+        type: string
+    type: object
+  response.ProfileUser:
+    properties:
+      created_at:
+        example: "2020-01-01T00:00:00+03:00"
+        type: string
+      email:
+        example: ivanov@example.com
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        type: string
+      name:
+        example: Ivanov
+        type: string
+      updated_at:
+        example: "2020-01-01T00:00:00+03:00"
+        type: string
+    type: object
+  response.SessionUser:
+    properties:
+      agent:
+        type: string
+      app:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      is_current:
+        type: boolean
+      os:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/response.User'
+    type: object
+  response.Stats:
+    properties:
+      clients:
+        type: integer
+      sessions:
+        type: integer
+      users:
+        type: integer
+    type: object
+  response.User:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: http://localhost:8081
 info:
   contact:
     name: Alnovi
@@ -5,8 +360,962 @@ info:
   description: Single sign-on (сервис единого входа)
   license:
     name: MIT
-    url: https://github.com/alnovi/sso/LICENSE.md
+    url: https://raw.githubusercontent.com/alnovi/sso/refs/heads/master/LICENSE.md
   title: SSO
   version: 1.0.0
-paths: {}
+paths:
+  /admin:
+    get:
+      consumes:
+      - text/html
+      description: Раздел администратора. Управление клиентами, пользователями и т.д.
+      operationId: AdminHome
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "302":
+          description: Found
+      security:
+      - JWT-Access: []
+      summary: Раздел администратора
+      tags:
+      - Admin
+  /admin/callback:
+    get:
+      consumes:
+      - text/html
+      description: Аутентификация пользователя по коду. Вызывается автоматически после
+        ввода логина и пароля.
+      operationId: AdminCallback
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Found
+          headers:
+            Location:
+              description: /admin
+              type: string
+      security:
+      - JWT-Access: []
+      summary: Аутентификация пользователя
+      tags:
+      - Admin
+  /admin/logout:
+    post:
+      consumes:
+      - application/json
+      description: Выход из раздела администратора
+      operationId: AdminLogout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT-Access: []
+      summary: Выход из системы
+      tags:
+      - Admin
+  /api/clients:
+    get:
+      consumes:
+      - application/json
+      description: Список клиентов
+      operationId: ClientsList
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиентах
+          schema:
+            items:
+              $ref: '#/definitions/response.Client'
+            type: array
+        "403":
+          description: Forbidden
+      security:
+      - JWT-Access: []
+      summary: Список клиентов
+      tags:
+      - Api Clients
+    post:
+      consumes:
+      - application/json
+      description: Добавление нового клиента
+      operationId: ClientsCreate
+      parameters:
+      - description: Данные клиента
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateClient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиенте
+          schema:
+            $ref: '#/definitions/response.Client'
+        "403":
+          description: Forbidden
+        "422":
+          description: Unprocessable Entity
+      security:
+      - JWT-Access: []
+      summary: Добавление клиенте
+      tags:
+      - Api Clients
+  /api/clients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление клиента
+      operationId: ClientsDelete
+      parameters:
+      - description: Идентификатор клиента
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиенте
+          schema:
+            $ref: '#/definitions/response.Client'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Удаление клиенте
+      tags:
+      - Api Clients
+    get:
+      consumes:
+      - application/json
+      description: Информация о клиенте
+      operationId: ClientsGet
+      parameters:
+      - description: Идентификатор клиента
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиенте
+          schema:
+            $ref: '#/definitions/response.Client'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Клиент
+      tags:
+      - Api Clients
+    put:
+      consumes:
+      - application/json
+      description: Изменение клиента
+      operationId: ClientsUpdate
+      parameters:
+      - description: Идентификатор клиента
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Данные клиента
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateClient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиенте
+          schema:
+            $ref: '#/definitions/response.Client'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+      security:
+      - JWT-Access: []
+      summary: Изменение клиенте
+      tags:
+      - Api Clients
+  /api/clients/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Восстановление удаленного клиента
+      operationId: ClientsRestore
+      parameters:
+      - description: Идентификатор клиента
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиенте
+          schema:
+            $ref: '#/definitions/response.Client'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Восстановление клиента
+      tags:
+      - Api Clients
+  /api/sessions:
+    get:
+      consumes:
+      - application/json
+      description: Список сессий пользователей
+      operationId: SessionsList
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о сессиях пользователей
+          schema:
+            items:
+              $ref: '#/definitions/response.SessionUser'
+            type: array
+        "403":
+          description: Forbidden
+      security:
+      - JWT-Access: []
+      summary: Список сессий
+      tags:
+      - Api Sessions
+  /api/sessions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление сессии пользователя
+      operationId: SessionsDelete
+      parameters:
+      - description: Идентификатор сессии
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+      security:
+      - JWT-Access: []
+      summary: Удаление сессии
+      tags:
+      - Api Sessions
+    get:
+      consumes:
+      - application/json
+      description: Информация о сессии пользователя
+      operationId: SessionsGet
+      parameters:
+      - description: Идентификатор сессии
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о сессии пользователя
+          schema:
+            $ref: '#/definitions/response.SessionUser'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Сессия
+      tags:
+      - Api Sessions
+  /api/stats:
+    get:
+      consumes:
+      - application/json
+      description: Метод возвращает количество пользователй, клиентов и сессий
+      operationId: StatsAll
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика
+          schema:
+            items:
+              $ref: '#/definitions/response.Stats'
+            type: array
+        "403":
+          description: Forbidden
+      security:
+      - JWT-Access: []
+      summary: Статистика
+      tags:
+      - Api Stats
+  /api/users:
+    get:
+      consumes:
+      - application/json
+      description: Список пользователей
+      operationId: UsersList
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о пользователях
+          schema:
+            items:
+              $ref: '#/definitions/response.User'
+            type: array
+        "403":
+          description: Forbidden
+      security:
+      - JWT-Access: []
+      summary: Список пользователей
+      tags:
+      - Api Users
+    post:
+      consumes:
+      - application/json
+      description: Добавление нового пользователя
+      operationId: UsersCreate
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о пользователе
+          schema:
+            $ref: '#/definitions/response.User'
+        "403":
+          description: Forbidden
+        "422":
+          description: Unprocessable Entity
+      security:
+      - JWT-Access: []
+      summary: Добавление пользователя
+      tags:
+      - Api Users
+  /api/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление пользователя
+      operationId: UsersDelete
+      parameters:
+      - description: Идентификатор пользователя
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о пользователе
+          schema:
+            $ref: '#/definitions/response.User'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Удаление пользователя
+      tags:
+      - Api Users
+    get:
+      consumes:
+      - application/json
+      description: Информация о пользователе
+      operationId: UsersGet
+      parameters:
+      - description: Идентификатор пользователя
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о пользователе
+          schema:
+            $ref: '#/definitions/response.User'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Пользователь
+      tags:
+      - Api Users
+    put:
+      consumes:
+      - application/json
+      description: Изменение пользователя
+      operationId: UsersUpdate
+      parameters:
+      - description: Идентификатор пользователя
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Данные пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о пользователе
+          schema:
+            $ref: '#/definitions/response.User'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+      security:
+      - JWT-Access: []
+      summary: Изменение пользователя
+      tags:
+      - Api Users
+  /api/users/{id}/clients:
+    get:
+      consumes:
+      - application/json
+      description: Список приложений и права доступа для пользователя
+      operationId: UsersClients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиентах и правах доступа
+          schema:
+            items:
+              $ref: '#/definitions/response.ClientRole'
+            type: array
+        "403":
+          description: Forbidden
+      security:
+      - JWT-Access: []
+      summary: Список клиентов пользователя
+      tags:
+      - Api Users
+  /api/users/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Восстановление удаленного пользователя
+      operationId: UsersRestore
+      parameters:
+      - description: Идентификатор пользователя
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о пользователе
+          schema:
+            $ref: '#/definitions/response.User'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      security:
+      - JWT-Access: []
+      summary: Восстановление пользователя
+      tags:
+      - Api Users
+  /api/users/{uid}/clients/{cid}:
+    post:
+      consumes:
+      - application/json
+      description: Изменение роли доступа пользователя в приложении
+      operationId: UsersUpdateRole
+      parameters:
+      - description: Идентификатор пользователя
+        in: query
+        name: uid
+        required: true
+        type: string
+      - description: Идентификатор клиента
+        in: query
+        name: сid
+        required: true
+        type: string
+      - description: Роль пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserRole'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+      security:
+      - JWT-Access: []
+      summary: Изменение роли пользователя
+      tags:
+      - Api Users
+  /oauth/authorize:
+    get:
+      consumes:
+      - text/html
+      description: Форма аутентификации пользователя
+      operationId: OAuthForm
+      parameters:
+      - description: идентификатор клиента
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: тип запроса
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: адрес клиента (callback)
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      - description: состояние
+        in: query
+        name: state
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+      summary: Форма аутентификации
+      tags:
+      - OAuth
+    post:
+      consumes:
+      - application/json
+      description: Аутентификации пользователя
+      operationId: OAuthAuthorize
+      parameters:
+      - description: Логин и пароль пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.Authorize'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+        "422":
+          description: Unprocessable Entity
+      summary: Аутентификации пользователя
+      tags:
+      - OAuth
+  /oauth/certs:
+    get:
+      consumes:
+      - application/json
+      description: Публичный ключ для проверки токена
+      operationId: OAuthCerts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Json web key
+          schema:
+            $ref: '#/definitions/response.JWK'
+        "500":
+          description: Internal Server Error
+      summary: Публичный ключ
+      tags:
+      - OAuth
+  /oauth/forgot-password:
+    get:
+      consumes:
+      - text/html
+      description: Форма получения токена для восстановления пароля
+      operationId: OAuthFormForgot
+      parameters:
+      - description: идентификатор клиента
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: тип запроса
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: адрес клиента (callback)
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      - description: состояние
+        in: query
+        name: state
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: Форма "Забыли пароль"
+      tags:
+      - OAuth
+    post:
+      consumes:
+      - application/json
+      description: Отправка токена сброса пароля на почту пользователя
+      operationId: OAuthForgotPassword
+      parameters:
+      - description: Логин пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ForgotPassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "422":
+          description: Unprocessable Entity
+      summary: Отправка токена сброса пароля
+      tags:
+      - OAuth
+  /oauth/reset-password:
+    get:
+      consumes:
+      - text/html
+      description: Форма для восстановления доступа
+      operationId: OAuthFormReset
+      parameters:
+      - description: токен восстановления доступа
+        in: query
+        name: hash
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: Форма восстановления пароля
+      tags:
+      - OAuth
+    post:
+      consumes:
+      - application/json
+      description: Задать новый пароль пользователя
+      operationId: OAuthResetPassword
+      parameters:
+      - description: Новый пароль пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ResetPassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+        "422":
+          description: Unprocessable Entity
+      summary: Сброс пароля
+      tags:
+      - OAuth
+  /oauth/token:
+    post:
+      consumes:
+      - application/json
+      description: Метод получения токена доступа
+      operationId: OAuthToken
+      parameters:
+      - description: типа разрешения
+        enum:
+        - authorization_code
+        - refresh_token
+        in: query
+        name: grant_type
+        required: true
+        type: string
+      - description: идентификатор клиента
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: секрет клиента
+        in: query
+        name: client_secret
+        required: true
+        type: string
+      - description: code токен
+        in: query
+        name: code
+        type: string
+      - description: refresh токен
+        in: query
+        name: refresh_token
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Токен доступа
+          schema:
+            items:
+              $ref: '#/definitions/response.AccessToken'
+            type: array
+        "400":
+          description: Ошибка
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Токен доступа
+      tags:
+      - OAuth
+  /profile:
+    get:
+      consumes:
+      - text/html
+      description: Профиль текущего пользователя
+      operationId: ProfileHome
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+      security:
+      - JWT-Access: []
+      summary: Страница профиля пользователя
+      tags:
+      - Profile
+  /profile/clients:
+    get:
+      consumes:
+      - application/json
+      description: Приложения доступны текущему пользователю
+      operationId: ProfileClients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile client
+          schema:
+            items:
+              $ref: '#/definitions/response.ProfileClient'
+            type: array
+      security:
+      - JWT-Access: []
+      summary: Приложения пользователя
+      tags:
+      - Profile
+  /profile/logout:
+    post:
+      consumes:
+      - application/json
+      description: Выход из системы текущего пользователя
+      operationId: ProfileLogout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT-Access: []
+      summary: Выход из системы
+      tags:
+      - Profile
+  /profile/me:
+    get:
+      consumes:
+      - application/json
+      description: Профиль текущего пользователя
+      operationId: ProfileMe
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile User
+          schema:
+            $ref: '#/definitions/response.ProfileUser'
+      security:
+      - JWT-Access: []
+      summary: Профиль пользователя
+      tags:
+      - Profile
+    put:
+      consumes:
+      - application/json
+      description: Изменение данных текущего пользователя
+      operationId: ProfileUpdateUser
+      parameters:
+      - description: Data user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File info
+          schema:
+            $ref: '#/definitions/response.ProfileUser'
+      security:
+      - JWT-Access: []
+      summary: Изменение данных пользователя
+      tags:
+      - Profile
+  /profile/password:
+    put:
+      consumes:
+      - application/json
+      description: Изменение пароля текущего пользователя
+      operationId: ProfileUpdatePassword
+      parameters:
+      - description: Password user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdatePassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT-Access: []
+      summary: Изменение пароля пользователя
+      tags:
+      - Profile
+  /profile/sessions:
+    get:
+      consumes:
+      - application/json
+      description: Список устройств пользователя
+      operationId: ProfileSessions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile session
+          schema:
+            items:
+              $ref: '#/definitions/response.ProfileSession'
+            type: array
+      security:
+      - JWT-Access: []
+      summary: Сессии пользователя
+      tags:
+      - Profile
+  /profile/sessions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление сессии текущего пользователя
+      operationId: ProfileSessionDelete
+      parameters:
+      - description: ID session
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT-Access: []
+      summary: Удаление сессии
+      tags:
+      - Profile
+securityDefinitions:
+  JWT-Access:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

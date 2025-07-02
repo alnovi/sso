@@ -19,6 +19,17 @@ func NewStatsController(stats *stats.Stats) *StatsController {
 	return &StatsController{stats: stats}
 }
 
+// Stats        godoc
+// @Id          StatsAll
+// @Summary     Статистика
+// @Description Метод возвращает количество пользователй, клиентов и сессий
+// @Tags        Api Stats
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200 {object} []response.Stats "Статистика"
+// @Failure 403
+// @Router      /api/stats [get]
 func (c *StatsController) Stats(e echo.Context) error {
 	var users, clients, sessions int
 	var err error

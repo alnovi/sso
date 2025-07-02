@@ -10,11 +10,11 @@ import (
 )
 
 type ProfileUser struct {
-	Id        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Id        string    `json:"id" example:"00000000-0000-0000-0000-000000000000"`
+	Name      string    `json:"name" example:"Ivanov"`
+	Email     string    `json:"email" example:"ivanov@example.com"`
+	CreatedAt time.Time `json:"created_at" example:"2020-01-01T00:00:00+03:00"`
+	UpdatedAt time.Time `json:"updated_at" example:"2020-01-01T00:00:00+03:00"`
 }
 
 func NewProfileUser(user *entity.User) *ProfileUser {
@@ -28,11 +28,11 @@ func NewProfileUser(user *entity.User) *ProfileUser {
 }
 
 type ProfileClient struct {
-	Id       string  `json:"id"`
-	Name     string  `json:"name"`
-	Icon     *string `json:"icon"`
-	Callback string  `json:"callback"`
-	Role     string  `json:"role"`
+	Id       string  `json:"id" example:"music"`
+	Name     string  `json:"name" example:"Music"`
+	Icon     *string `json:"icon" example:"icon-music"`
+	Callback string  `json:"callback" example:"/callback/auth/"`
+	Role     string  `json:"role" example:"admin"`
 }
 
 func NewProfileClient(client *entity.ClientRole) *ProfileClient {
@@ -52,13 +52,13 @@ func NewCollProfileClient(clients []*entity.ClientRole) []*ProfileClient {
 }
 
 type ProfileSession struct {
-	Id        string    `json:"id"`
-	IP        string    `json:"ip"`
-	App       string    `json:"app"`
-	OS        string    `json:"os"`
-	IsCurrent bool      `json:"is_current"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Id        string    `json:"id" example:"00000000-0000-0000-0000-000000000000"`
+	IP        string    `json:"ip" example:"127.0.0.1"`
+	App       string    `json:"app" example:"music"`
+	OS        string    `json:"os" example:"linux"`
+	IsCurrent bool      `json:"is_current" example:"true"`
+	CreatedAt time.Time `json:"created_at" example:"2020-01-01T00:00:00+03:00"`
+	UpdatedAt time.Time `json:"updated_at" example:"2020-01-01T00:00:00+03:00"`
 }
 
 func NewProfileSession(session *entity.Session, currentId string) *ProfileSession {

@@ -1,0 +1,12 @@
+/.git
+/.github
+/tests
+.editorconfig
+.env.example
+.gitignore
+.golangci.yml
+.testcoverage.yml
+docker-compose.yml
+LICENSE.md
+Makefile
+README.md

@@ -21,6 +21,21 @@ func NewTokenController(oauth *oauth.OAuth) *TokenController {
 	return &TokenController{oauth: oauth}
 }
 
+// Token        godoc
+// @Id          OAuthToken
+// @Summary     Токен доступа
+// @Description Метод получения токена доступа
+// @Tags        OAuth
+// @Accept      json
+// @Produce     json
+// @Param       grant_type query string true "типа разрешения" Enums(authorization_code, refresh_token)
+// @Param       client_id query string true "идентификатор клиента"
+// @Param       client_secret query string true "секрет клиента"
+// @Param       code query string false "code токен"
+// @Param       refresh_token query string false "refresh токен"
+// @Success 200 {object} []response.AccessToken "Токен доступа"
+// @Failure 400 {object} response.Error "Ошибка"
+// @Router      /oauth/token [post]
 func (c *TokenController) Token(e echo.Context) error {
 	switch e.QueryParam("grant_type") {
 	case oauth.GrantTypeAuthorizationCode:

@@ -20,6 +20,17 @@ func NewSessionController(sessions *storage.Sessions) *SessionController {
 	return &SessionController{sessions: sessions}
 }
 
+// List         godoc
+// @Id          SessionsList
+// @Summary     Список сессий
+// @Description Список сессий пользователей
+// @Tags        Api Sessions
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Success 200 {object} []response.SessionUser "Информация о сессиях пользователей"
+// @Failure 403
+// @Router      /api/sessions [get]
 func (c *SessionController) List(e echo.Context) error {
 	userSessionId := c.MustSessionId(e)
 
@@ -31,6 +42,19 @@ func (c *SessionController) List(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewSessionsUser(sessions, userSessionId))
 }
 
+// Get          godoc
+// @Id          SessionsGet
+// @Summary     Сессия
+// @Description Информация о сессии пользователя
+// @Tags        Api Sessions
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       id query string true "Идентификатор сессии"
+// @Success 200 {object} response.SessionUser "Информация о сессии пользователя"
+// @Failure 403
+// @Failure 404
+// @Router      /api/sessions/{id} [get]
 func (c *SessionController) Get(e echo.Context) error {
 	userSessionId := c.MustSessionId(e)
 
@@ -42,6 +66,19 @@ func (c *SessionController) Get(e echo.Context) error {
 	return e.JSON(http.StatusOK, response.NewSessionUser(session, userSessionId))
 }
 
+// Delete       godoc
+// @Id          SessionsDelete
+// @Summary     Удаление сессии
+// @Description Удаление сессии пользователя
+// @Tags        Api Sessions
+// @Accept      json
+// @Produce     json
+// @Security    JWT-Access
+// @Param       id query string true "Идентификатор сессии"
+// @Success 200
+// @Failure 400
+// @Failure 403
+// @Router      /api/sessions/{id} [delete]
 func (c *SessionController) Delete(e echo.Context) error {
 	if c.MustSessionId(e) == e.Param("id") {
 		return echo.NewHTTPError(http.StatusBadRequest, "вы не можете удалить текущую сессию")

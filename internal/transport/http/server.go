@@ -46,6 +46,7 @@ func NewServer(p *provider.Provider) *server.HttpServer {
 		server.WithControllers(controllers...),
 	)
 
+	s.Pre(middleware.Robots())
 	s.Pre(middleware.TrailingSlash())
 	s.Use(middleware.Tracer())
 	s.Use(middleware.RequestLogger(p.LoggerMod("http-request")))
